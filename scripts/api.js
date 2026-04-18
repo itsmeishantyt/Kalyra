@@ -1,0 +1,163 @@
+/**
+ * scripts/api.js — Kalyra API Client
+ * Centralised fetch wrapper for all backend calls.
+ * Base URL auto-detects dev vs prod.
+ */
+
+const API_BASE = 'http://localhost:3000/api/v1';
+const TOKEN_KEY  = 'kalyra_access_token';
+const REFRESH_KEY = 'kalyra_refresh_token';
+const USER_KEY   = 'kalyra_user';
+
+/* ─── Token helpers ──────────────────────────────────────── */
+const KalyraToken = {
+  getAccess()        { return localStorage.getItem(TOKEN_KEY); },
+  getRefresh()       { return localStorage.getItem(REFRESH_KEY); },
+  getUser()          { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; } },
+  setAccess(t)       { localStorage.setItem(TOKEN_KEY, t); },
+  setRefresh(t)      { localStorage.setItem(REFRESH_KEY, t); },
+  setUser(u)         { localStorage.setItem(USER_KEY, JSON.stringify(u)); },
+  clear()            { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(REFRESH_KEY); localStorage.removeItem(USER_KEY); localStorage.removeItem('kalyra_cart'); },
+  isLoggedIn()       { return !!this.getAccess() && !!this.getUser(); },
+};
+
+/* ─── Core fetch wrapper ─────────────────────────────────── */
+async function apiFetch(endpoint, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const token = KalyraToken.getAccess();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+
+  // Attempt token refresh on 401
+  if (res.status === 401 && KalyraToken.getRefresh()) {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      headers['Authorization'] = `Bearer ${KalyraToken.getAccess()}`;
+      const retry = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+      return parseResponse(retry);
+    } else {
+      KalyraToken.clear();
+      window.dispatchEvent(new Event('kalyra:logout'));
+      throw new Error('Session expired. Please login again.');
+    }
+  }
+
+  return parseResponse(res);
+}
+
+async function parseResponse(res) {
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    // Extract specific validation error messages if present
+    let msg = json.message || `Request failed (${res.status})`;
+    if (json.errors && Array.isArray(json.errors) && json.errors.length > 0) {
+      msg = json.errors.map(e => e.msg || e.message || e).join(' · ');
+    }
+    throw new Error(msg);
+  }
+  return json;
+}
+
+async function tryRefreshToken() {
+  try {
+    const user = KalyraToken.getUser();
+    const endpoint = (user && user.isAdmin) ? '/admin/auth/refresh' : '/auth/refresh';
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: KalyraToken.getRefresh() }),
+    });
+    if (!res.ok) return false;
+    const { data } = await res.json();
+    KalyraToken.setAccess(data.accessToken);
+    KalyraToken.setRefresh(data.refreshToken);
+    return true;
+  } catch { return false; }
+}
+
+/* ─── Public API methods ─────────────────────────────────── */
+const KalyraAPI = {
+  // Auth
+  async register(name, email, password, phone) {
+    const body = { name, email, password };
+    const cleanPhone = (phone || '').trim();
+    if (cleanPhone) body.phone = cleanPhone;   // only include when non-empty
+    return apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(body) });
+  },
+  async login(email, password) {
+    try {
+      return await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    } catch (err) {
+      // Fallback to check if it's an admin account
+      if (err.message.includes('Invalid') || err.message.includes('credentials')) {
+        try {
+          const adminRes = await apiFetch('/admin/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+          // Normalize payload for the frontend AuthManager
+          if (adminRes.data && adminRes.data.admin) {
+            adminRes.data.user = adminRes.data.admin;
+            adminRes.data.user.isAdmin = true;
+          }
+          return adminRes;
+        } catch (adminErr) {
+          throw err; // throw original if admin fails too
+        }
+      }
+      throw err;
+    }
+  },
+  async logout() {
+    const refreshToken = KalyraToken.getRefresh();
+    if (refreshToken) {
+      const user = KalyraToken.getUser();
+      const endpoint = (user && user.isAdmin) ? '/admin/auth/logout' : '/auth/logout';
+      await apiFetch(endpoint, { method: 'POST', body: JSON.stringify({ refreshToken }) }).catch(() => {});
+    }
+  },
+  async forgotPassword(email) {
+    return apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+  },
+
+  // User
+  async getProfile() {
+    return apiFetch('/user/profile');
+  },
+
+  // Products
+  async getProducts(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return apiFetch(`/products${qs ? '?' + qs : ''}`);
+  },
+  async getProduct(id) {
+    return apiFetch(`/products/${id}`);
+  },
+
+  // Cart
+  async getCart() {
+    return apiFetch('/cart');
+  },
+  async addToCart(product_id, quantity = 1, size = null, color = null) {
+    return apiFetch('/cart', { method: 'POST', body: JSON.stringify({ product_id, quantity, size, color }) });
+  },
+  async updateCartItem(itemId, quantity) {
+    return apiFetch(`/cart/${itemId}`, { method: 'PUT', body: JSON.stringify({ quantity }) });
+  },
+  async removeFromCart(itemId) {
+    return apiFetch(`/cart/${itemId}`, { method: 'DELETE' });
+  },
+  async clearCart() {
+    return apiFetch('/cart', { method: 'DELETE' });
+  },
+
+  // Wishlist
+  async toggleWishlist(product_id) {
+    return apiFetch('/wishlist', { method: 'POST', body: JSON.stringify({ product_id }) });
+  },
+  async getWishlist() {
+    return apiFetch('/wishlist');
+  },
+};
+
+// Expose globally
+window.KalyraAPI   = KalyraAPI;
+window.KalyraToken = KalyraToken;

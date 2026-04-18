@@ -1,0 +1,92 @@
+<body>
+<!-- Hidden SVG Filter -->
+<svg style="position: absolute; width: 0; height: 0; pointer-events: none; visibility: hidden; overflow: hidden;" aria-hidden="true">
+  <filter id="remove-black-bg" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="1 0 0 0 0
+                                         0 1 0 0 0
+                                         0 0 1 0 0
+                                         0.33 0.33 0.33 0 -0.1" />
+  </filter>
+</svg>
+
+<div class="nav-mobile-left">
+    <div class="nav-mobile-toggle" id="nav-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <button class="nav-mobile-search-trigger" id="mobile-search-trigger" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+    </button>
+</div>
+
+<div class="nav-mobile-search-dropdown" id="mobile-search-dropdown">
+    <input type="text" placeholder="Search our collection..." id="mobile-search-input">
+    <button class="nav-mobile-search-btn" id="mobile-search-btn" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+    </button>
+</div>
+
+<a href="index.html" class="nav-logo"><img src="assets/imgs/logo.png" alt="" width="42" height="42" fetchpriority="high">Kalyra</a>
+
+<ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li class="nav-dropdown">
+        <a href="shop.html" class="dropdown-trigger">
+            Shop
+            <svg class="dropdown-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 1l4 4 4-4" />
+            </svg>
+        </a>
+        <div class="dropdown-menu">
+            <a href="shop.html?category=artistry">Artistry Collection</a>
+            <a href="shop.html?category=mandala">Mandala Collection</a>
+            <a href="shop.html?category=living">Living Spaces</a>
+            <a href="shop.html?category=wearable">Wearable Art</a>
+            <a href="shop.html?category=bespoke">Bespoke Creations</a>
+        </div>
+    </li>
+    <li><a href="apparel.html">Apparel</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="about.html">About Us</a></li>
+</ul>
+
+<div class="nav-actions">
+    <div class="nav-search">
+        <input type="text" id="desktop-search-input" placeholder="Search..." aria-label="Search">
+        <button id="desktop-search-btn" class="nav-search-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </button>
+    </div>
+
+    <div class="nav-icons-group">
+        <!-- User Icon -->
+        <a href="#login" class="nav-icon" aria-label="User Account">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        </a>
+
+        <!-- Cart Icon -->
+        <a href="cart.html" class="nav-icon" aria-label="Cart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                <path d="M3 6h18"></path>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <span class="cart-count">0</span>
+        </a>
+    </div>
+</div>
+</body>

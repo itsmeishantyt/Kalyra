@@ -1,0 +1,165 @@
+<section class="shop-section">
+    <div class="shop-header-minimal reveal">
+        <!-- Abstract Background Elements -->
+        <div class="golden-leaf">
+            <svg class="leaf-curve-main" viewBox="0 0 1440 600" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0 0 L1440 0 L1440 600 L0 600 Z" fill="url(#leafGradientShopContent)" fill-opacity="0.05"/>
+                <path d="M-100 200 C300 150, 600 250, 900 200 C1200 150, 1500 100, 1700 150" stroke="url(#leafGradientShopContent)" stroke-width="0.8" fill="none" opacity="0.15"/>
+                <defs>
+                    <linearGradient id="leafGradientShopContent" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#775a19" stop-opacity="0"/>
+                        <stop offset="20%" stop-color="#775a19" stop-opacity="0.15"/>
+                        <stop offset="80%" stop-color="#775a19" stop-opacity="0.15"/>
+                        <stop offset="100%" stop-color="#775a19" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <svg class="leaf-decoration leaf-3" viewBox="0 0 70 90" fill="none" xmlns="http://www.w3.org/2000/svg" style="top: 15%; right: 8%;">
+                <path d="M35 6 C52 20, 62 42, 58 65 C54 80, 43 84, 35 80 C27 84, 16 80, 12 65 C8 42, 18 20, 35 6Z" fill="#775a19" fill-opacity="0.08" stroke="#775a19" stroke-width="0.5" stroke-opacity="0.2"/>
+            </svg>
+            <svg class="leaf-decoration leaf-4" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="bottom: 12%; left: 10%;">
+                <path d="M45 8 C65 28, 78 58, 72 82 C67 100, 54 104, 45 100 C36 104, 23 100, 18 82 C12 58, 25 28, 45 8Z" fill="#775a19" fill-opacity="0.05" stroke="#775a19" stroke-width="0.5" stroke-opacity="0.15"/>
+            </svg>
+            <!-- Floating texture -->
+            <div style="position: absolute; top: 40%; left: 5%; width: 150px; height: 1px; background: linear-gradient(90deg, transparent, var(--stitch-gold), transparent); opacity: 0.1;"></div>
+        </div>
+
+        <h1 class="shop-title-large">Curated <em>Treasures</em></h1>
+        <p class="shop-tagline">Hand-painted artworks for a life well-lived.</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="shop-toolbar reveal">
+        <div class="toolbar-left">
+            <button class="filter-toggle-btn icon-only" id="filter-toggle" aria-label="Open Filters">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                    <line x1="1" y1="14" x2="7" y2="14"></line>
+                    <line x1="9" y1="8" x2="15" y2="8"></line>
+                    <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+            </button>
+
+            <div class="sort-wrapper">
+                <select id="sort-dropdown" class="sort-select">
+                    <option value="featured">Featured</option>
+                    <option value="relevance">Most Relevant</option>
+                    <option value="best-selling">Best Selling</option>
+                    <option value="price-low">Price, low to high</option>
+                    <option value="price-high">Price, high to low</option>
+                    <option value="alphabet-az">Alphabetically, A-Z</option>
+                    <option value="alphabet-za">Alphabetically, Z-A</option>
+                </select>
+                <div class="sort-chevron">
+                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 1l4 4 4-4" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar-right">
+            <div class="view-toggles">
+                <button class="view-btn" data-view="grid-2" aria-label="2 Columns">
+                    <div class="view-icon-bars"><span></span><span></span></div>
+                </button>
+                <button class="view-btn" data-view="grid-3" aria-label="3 Columns">
+                    <div class="view-icon-bars"><span></span><span></span><span></span></div>
+                </button>
+                <button class="view-btn active" data-view="grid-4" aria-label="4 Columns">
+                    <div class="view-icon-bars"><span></span><span></span><span></span><span></span></div>
+                </button>
+                <button class="view-btn" data-view="list" aria-label="List View">
+                    <div class="view-icon-rows"><span></span><span></span><span></span></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Drawer -->
+    <div class="filter-drawer" id="filter-drawer">
+        <div class="drawer-header">
+            <h3>Filters</h3>
+            <button class="close-drawer" id="filter-close">&times;</button>
+        </div>
+        <div class="drawer-content">
+            <div class="filter-group">
+                <h4>Collections</h4>
+                <div class="filter-options">
+                    <label class="custom-check">
+                        <input type="checkbox" name="category" value="artistry">
+                        <span class="checkmark"></span> Artistry Collection
+                    </label>
+                    <label class="custom-check">
+                        <input type="checkbox" name="category" value="mandala">
+                        <span class="checkmark"></span> Mandala Collection
+                    </label>
+                    <label class="custom-check">
+                        <input type="checkbox" name="category" value="living">
+                        <span class="checkmark"></span> Living Spaces
+                    </label>
+                    <label class="custom-check">
+                        <input type="checkbox" name="category" value="wearable">
+                        <span class="checkmark"></span> Wearable Art
+                    </label>
+                    <label class="custom-check">
+                        <input type="checkbox" name="category" value="bespoke">
+                        <span class="checkmark"></span> Bespoke Creations
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>Price Range</h4>
+                <div class="filter-options">
+                    <label class="custom-radio">
+                        <input type="radio" name="price" value="599">
+                        <span class="radiomark"></span> Under ₹599
+                    </label>
+                    <label class="custom-radio">
+                        <input type="radio" name="price" value="999">
+                        <span class="radiomark"></span> Under ₹999
+                    </label>
+                    <label class="custom-radio">
+                        <input type="radio" name="price" value="1499">
+                        <span class="radiomark"></span> Under ₹1499
+                    </label>
+                    <label class="custom-radio">
+                        <input type="radio" name="price" value="2099">
+                        <span class="radiomark"></span> Under ₹2099
+                    </label>
+                    <label class="custom-radio">
+                        <input type="radio" name="price" value="2000+">
+                        <span class="radiomark"></span> ₹2000+ Premium
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>Style Tags</h4>
+                <div class="style-tags">
+                    <button class="style-tag">Spiritual Mandala</button>
+                    <button class="style-tag">Love & Aesthetic</button>
+                    <button class="style-tag">Bold & Expressive</button>
+                    <button class="style-tag">Calm & Minimal</button>
+                    <button class="style-tag">Professional</button>
+                </div>
+            </div>
+            
+            <button class="apply-filters-btn" id="apply-filters">Show Results</button>
+        </div>
+    </div>
+    <div class="filter-overlay" id="filter-overlay"></div>
+
+    <!-- Products Grid -->
+    <div class="shop-grid-wrap" style="padding: 40px 0; min-height: 600px;">
+        <div id="shop-items-container" class="products-grid grid-4">
+            <!-- Products will be injected by main.js -->
+        </div>
+    </div>
+</section>
