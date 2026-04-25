@@ -120,7 +120,7 @@ document.addEventListener('kalyra:pdp-ready', (e) => {
     const selectedColor = document.querySelector('.color-pill.active')?.textContent || null;
     if (product) {
       await KalyraCart.addItem(product.id, 1, selectedSize, selectedColor, {
-        name: product.name, price: product.price, image_url: product.img,
+        name: product.name, price: product.price, image_url: product.image_url || product.img,
       });
     }
   });

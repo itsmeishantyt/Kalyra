@@ -20,6 +20,25 @@ const dateValidators = [
 ];
 
 // ─────────────────────────────────────────────────────────────
+//  GET /api/v1/admin/analytics/dashboard
+//  Dashboard summary
+// ─────────────────────────────────────────────────────────────
+router.get('/dashboard', requireAdmin(), (req, res, next) => {
+  try {
+    const db = getDb();
+    const summary = db.prepare(`
+      SELECT 
+        (SELECT ROUND(COALESCE(SUM(total_amount), 0), 2) FROM orders WHERE status NOT IN ('cancelled', 'refunded')) as totalRevenue,
+        (SELECT COUNT(*) FROM orders) as totalOrders,
+        (SELECT COUNT(*) FROM products WHERE is_active = 1) as activeProducts,
+        (SELECT COUNT(*) FROM users) as totalUsers
+    `).get();
+
+    return R.success(res, { summary });
+  } catch (err) { next(err); }
+});
+
+// ─────────────────────────────────────────────────────────────
 //  GET /api/v1/admin/analytics/sales
 //  Daily sales — order count + revenue grouped by day
 // ─────────────────────────────────────────────────────────────

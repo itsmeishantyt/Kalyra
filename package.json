@@ -1,0 +1,11 @@
+{
+  "name": "kalyra-frontend",
+  "version": "1.0.0",
+  "description": "Kalyra E-Commerce Frontend",
+  "scripts": {
+    "dev": "live-server --port=3001 --host=localhost"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

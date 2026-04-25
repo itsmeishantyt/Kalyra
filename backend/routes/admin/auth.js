@@ -20,7 +20,7 @@ const adminLimiter = rateLimit({
 });
 
 // POST /api/v1/admin/auth/login
-router.post('/login', adminLimiter, [
+router.post('/login', [
   body('email').trim().isEmail().normalizeEmail(),
   body('password').notEmpty(),
 ], validate, async (req, res, next) => {

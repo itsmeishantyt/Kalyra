@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Kalyra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
+    <style>
+        .checkout-page {
+            padding: 4rem 0;
+            background-color: #faf9f8;
+        }
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checkout-section {
+            background: #fff;
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .checkout-section h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-col {
+            flex: 1;
+        }
+        .checkout-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .checkout-form input, .checkout-form select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+        }
+        .checkout-form input:focus, .checkout-form select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .order-summary {
+            background: #fff;
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 2rem;
+        }
+        .order-summary h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px solid #eee;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .btn-checkout {
+            width: 100%;
+            margin-top: 2rem;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 4px;
+        }
+        .payment-method {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .payment-method input {
+            width: auto;
+        }
+        #checkout-items {
+            margin-bottom: 2rem;
+        }
+        .checkout-item-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .error-message {
+            color: #dc2626;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav id="navbar"></nav>
+
+    <main class="checkout-page">
+        <div class="container checkout-container">
+            <div class="checkout-main">
+                <div class="error-message" id="checkout-error"></div>
+                
+                <div class="checkout-section">
+                    <h2>Shipping Address</h2>
+                    <form id="shipping-form" class="checkout-form">
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label for="address-line1">Address Line 1*</label>
+                                <input type="text" id="address-line1" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label for="address-city">City*</label>
+                                <input type="text" id="address-city" required>
+                            </div>
+                            <div class="form-col">
+                                <label for="address-state">State*</label>
+                                <input type="text" id="address-state" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label for="address-zip">Postal Code*</label>
+                                <input type="text" id="address-zip" required>
+                            </div>
+                            <div class="form-col">
+                                <label for="address-country">Country*</label>
+                                <select id="address-country" required>
+                                    <option value="IN">India</option>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="checkout-section">
+                    <h2>Payment Method</h2>
+                    <div class="checkout-form">
+                        <div class="payment-method">
+                            <input type="radio" id="pay-cod" name="payment_method" value="cod" checked>
+                            <label for="pay-cod" style="display:inline; margin:0; font-size:1rem;">Cash on Delivery (COD)</label>
+                        </div>
+                        <div class="payment-method">
+                            <input type="radio" id="pay-card" name="payment_method" value="card">
+                            <label for="pay-card" style="display:inline; margin:0; font-size:1rem;">Credit / Debit Card</label>
+                        </div>
+                        <div class="payment-method">
+                            <input type="radio" id="pay-upi" name="payment_method" value="upi">
+                            <label for="pay-upi" style="display:inline; margin:0; font-size:1rem;">UPI</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkout-sidebar">
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    <div id="checkout-items">
+                        <!-- Items rendered here -->
+                    </div>
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span id="summary-subtotal">₹0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span id="summary-total">₹0.00</span>
+                    </div>
+                    <button type="button" id="place-order-btn" class="btn-primary btn-checkout">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="footer">
+        <!-- Footer injected by main.js -->
+    </footer>
+
+    <script src="scripts/api.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/cart.js"></script>
+    <script src="scripts/main.js"></script>
+    <script src="scripts/checkout.js"></script>
+</body>
+</html>
