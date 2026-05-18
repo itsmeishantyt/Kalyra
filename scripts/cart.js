@@ -113,7 +113,7 @@ if (document.readyState === 'loading') {
 }
 
 /* Wire "Add to Cart" buttons on PDP automatically */
-document.addEventListener('kalyra:pdp-ready', (e) => {
+window.addEventListener('kalyra:pdp-ready', (e) => {
   const { product } = e.detail || {};
   document.getElementById('pdp-add-cart')?.addEventListener('click', async () => {
     const selectedSize  = document.querySelector('.size-pill.active')?.textContent || null;

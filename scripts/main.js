@@ -1,4 +1,5 @@
 // The CATALOG is now managed in scripts/catalog.js, but storefront now uses API directly.
+const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'http://localhost:3000') + url : url;
 
 // Component Loading System
 const components = {
@@ -61,7 +62,7 @@ async function loadAllComponents() {
     await Promise.all(loadPromises);
 
     // Recalculate isShopPage after components are loaded into the DOM
-    const shopGridExists = !!document.getElementById('shop-products-grid');
+    const shopGridExists = !!document.getElementById('shop-items-container') || !!document.querySelector('#shop .products-grid');
     const finalIsShopPage = isShopPage || shopGridExists;
 
     console.log('Components loaded.', { finalIsShopPage, shopGridExists });
@@ -161,6 +162,8 @@ async function loadAllComponents() {
         await initProductPage();
     }
 
+    if (window.KalyraCart) window.KalyraCart.init();
+    
     // Always run scroll reveal last
     initScrollReveal();
 }
@@ -244,7 +247,7 @@ function initShopFilters() {
             
             card.innerHTML = `
                 <div class="product-img-wrap">
-                    <img src="${p.image_url || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
+                    <img src="${getImageUrl(p.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
                     <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
                 </div>
                 <div class="product-brand">${p.category}</div>
@@ -271,6 +274,12 @@ function initShopFilters() {
             let products = response.data || [];
             if (filters.sortBy === 'alphabet-az') products.sort((a, b) => a.name.localeCompare(b.name));
             if (filters.sortBy === 'alphabet-za') products.sort((a, b) => b.name.localeCompare(a.name));
+            
+            // Limit to 4 products on the home page
+            const isShopPage = window.location.href.toLowerCase().includes('shop.html');
+            if (!isShopPage) {
+                products = products.slice(0, 4);
+            }
             
             renderProducts(products);
         } catch (error) {
@@ -333,9 +342,8 @@ function initShopFilters() {
         if (mobileInput) mobileInput.value = initialSearch;
     }
 
-    if (initialCat || initialSearch) {
-        applyFiltersAndSort();
-    }
+    // Always fetch and render products initially
+    applyFiltersAndSort();
 }
 
 function initMobileSearch() {
@@ -658,7 +666,7 @@ function initGlobalSearch() {
                 } else {
                     container.innerHTML = matches.map(p => `
                         <div class="autocomplete-item" onclick="window.location.href='product.html?id=${p.id}'">
-                            <img src="${p.image_url || 'https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'}" alt="${p.name}" class="autocomplete-img" onerror="this.src='https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'">
+                            <img src="${getImageUrl(p.image_url) || 'https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'}" alt="${p.name}" class="autocomplete-img" onerror="this.src='https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'">
                             <div class="autocomplete-info">
                                 <span class="autocomplete-name">${p.name}</span>
                                 <span class="autocomplete-price">₹${(typeof p.price === 'number' ? p.price : 0).toLocaleString()}</span>
@@ -795,7 +803,7 @@ async function renderPDP(container, product) {
         console.error('Failed to load related products', err);
     }
     
-    const prodImg = product.image_url || product.img || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product';
+    const prodImg = getImageUrl(product.image_url) || product.img || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product';
 
     container.innerHTML = `
         <div class="pdp-wrapper">
@@ -903,7 +911,7 @@ async function renderPDP(container, product) {
                     ${related.map(r => `
                         <div class="product-card" onclick="window.location.href='product.html?id=${r.id}'">
                             <div class="product-img-wrap">
-                                <img src="${r.image_url || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${r.name}" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
+                                <img src="${getImageUrl(r.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${r.name}" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
                             </div>
                             <div class="product-brand">${r.category ? r.category.charAt(0).toUpperCase() + r.category.slice(1) : ''}</div>
                             <h3 class="product-name">${r.name}</h3>

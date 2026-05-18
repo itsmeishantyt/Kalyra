@@ -161,3 +161,4 @@ const KalyraAPI = {
 // Expose globally
 window.KalyraAPI   = KalyraAPI;
 window.KalyraToken = KalyraToken;
+window.API_HOST    = API_BASE.replace('/api/v1', '');

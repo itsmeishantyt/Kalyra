@@ -87,10 +87,9 @@ function buildInstance() {
     console.log('[RAZORPAY] Running in MOCK mode. Set RAZORPAY_MOCK_MODE=false with real keys to go live.');
     return new MockRazorpay();
   }
-  // Uncomment when going live:
-  // const Razorpay = require('razorpay');
-  // return new Razorpay({ key_id: KEY_ID, key_secret: KEY_SECRET });
-  return new MockRazorpay();
+  // Real SDK:
+  const Razorpay = require('razorpay');
+  return new Razorpay({ key_id: KEY_ID, key_secret: KEY_SECRET });
 }
 
 const razorpay = buildInstance();

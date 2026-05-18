@@ -29,7 +29,7 @@ const adminAnalyticsRoutes = require('./routes/admin/analytics');
 const app = express();
 
 // ── Security headers ────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // ── CORS ────────────────────────────────────────────────────
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || '*')
