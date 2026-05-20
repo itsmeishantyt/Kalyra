@@ -13,7 +13,7 @@ router.get('/', requireAuth, (req, res, next) => {
     const db = getDb();
     const items = db.prepare(`
       SELECT ci.id, ci.quantity, ci.size, ci.color, ci.added_at,
-             p.id as product_id, p.name, p.price, p.discount_pct, p.image_url, p.stock,
+             p.id as product_id, p.name, p.description, p.price, p.discount_pct, p.image_url, p.stock,
              ROUND(p.price * (1 - p.discount_pct / 100), 2) as discounted_price
       FROM cart_items ci
       JOIN products p ON p.id = ci.product_id

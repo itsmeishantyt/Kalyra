@@ -335,21 +335,49 @@ body {
 }
 
 .metric-card .trend {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
+    color: var(--admin-text-muted);
+    min-height: 1.2em;
 }
 
-.trend.positive span {
+.metric-card .trend .trend.positive,
+.trend.positive {
     color: #059669;
     font-weight: 500;
 }
 
-.trend.neutral span {
+.metric-card .trend .trend.neutral,
+.trend.neutral {
     color: var(--admin-text-muted);
 }
 
-.trend.negative span {
+.metric-card .trend .trend.negative,
+.trend.negative {
     color: #dc2626;
     font-weight: 500;
+}
+
+/* Positive / negative applied directly to a span inside .trend */
+.metric-card .trend strong {
+    font-weight: 700;
+}
+
+/* Order status dropdown in table */
+.status-select {
+    padding: 4px 8px;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    font-family: var(--font-family);
+    font-size: 0.8rem;
+    color: var(--admin-text-main);
+    background: var(--admin-bg);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.status-select:focus {
+    border-color: var(--admin-primary);
 }
 
 /* Tables */

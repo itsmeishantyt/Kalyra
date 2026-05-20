@@ -76,7 +76,7 @@ const KalyraCart = {
     if (user && user.isAdmin) return; // Admins don't have storefront carts
     try {
       const res = await KalyraAPI.getCart();
-      const items = res.data || [];
+      const items = res.data?.items || res.data || [];
       this.saveLocal(items);
     } catch { /* silently fail */ }
   },

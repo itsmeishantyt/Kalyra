@@ -99,7 +99,13 @@ const razorpay = buildInstance();
  * Works with both mock and real instances.
  */
 function verifySignature({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
-  return razorpay.verifyPaymentSignature({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+  if (MOCK_MODE) {
+    console.log('[RAZORPAY MOCK] Signature verified (mock — always true)');
+    return true;
+  }
+  const body    = `${razorpay_order_id}|${razorpay_payment_id}`;
+  const digest  = crypto.createHmac('sha256', KEY_SECRET).update(body).digest('hex');
+  return digest === razorpay_signature;
 }
 
 module.exports = { razorpay, verifySignature, KEY_ID, MOCK_MODE };

@@ -74,27 +74,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             // First, save the address
-            const addressRes = await fetch('http://localhost:3000/api/v1/user/addresses', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${KalyraToken.get()}`
-                },
-                body: JSON.stringify({
-                    label: 'Home',
-                    line1,
-                    city,
-                    state,
-                    postal_code: zip,
-                    country
-                })
+            const addressData = await KalyraAPI.createAddress({
+                label: 'Home',
+                line1,
+                city,
+                state,
+                postal_code: zip,
+                country
             });
-            const addressData = await addressRes.json();
             
-            if (!addressData.success) {
-                throw new Error(addressData.message || 'Failed to save address');
-            }
-
             const addressId = addressData.data.id;
 
             // Prepare order items
@@ -106,102 +94,66 @@ document.addEventListener('DOMContentLoaded', async () => {
             }));
 
             // Create Order
-            const orderRes = await fetch('http://localhost:3000/api/v1/orders', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${KalyraToken.get()}`
-                },
-                body: JSON.stringify({
-                    items: orderItems,
-                    address_id: addressId,
-                    payment_method: paymentMethod
-                })
+            const orderData = await KalyraAPI.createOrder({
+                items: orderItems,
+                address_id: addressId,
+                payment_method: paymentMethod
             });
-            const orderData = await orderRes.json();
 
-            if (orderData.success) {
-                if (paymentMethod !== 'cod') {
-                    // Initialize Razorpay
-                    const initRes = await fetch('http://localhost:3000/api/v1/payments/initiate', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${KalyraToken.get()}`
-                        },
-                        body: JSON.stringify({
-                            order_id: orderData.data.order.id
-                        })
-                    });
-                    const initData = await initRes.json();
+            if (paymentMethod !== 'cod') {
+                // Initialize Razorpay
+                const initData = await KalyraAPI.initiatePayment(orderData.data.order.id);
 
-                    if (!initData.success) {
-                        throw new Error(initData.message || 'Failed to initiate payment');
-                    }
-
-                    const options = {
-                        key: initData.data.key_id,
-                        amount: initData.data.amount,
-                        currency: initData.data.currency,
-                        name: "Kalyra",
-                        description: "Order " + initData.data.order_ref,
-                        order_id: initData.data.razorpay_order_id,
-                        prefill: initData.data.prefill,
-                        handler: async function (response) {
-                            try {
-                                const verifyRes = await fetch('http://localhost:3000/api/v1/payments/webhook', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${KalyraToken.get()}`
-                                    },
-                                    body: JSON.stringify({
-                                        razorpay_order_id: response.razorpay_order_id,
-                                        razorpay_payment_id: response.razorpay_payment_id,
-                                        razorpay_signature: response.razorpay_signature
-                                    })
-                                });
-                                const verifyData = await verifyRes.json();
-                                if (verifyData.success) {
-                                    await KalyraCart.clear();
-                                    showToast('Payment successful!', 'success');
-                                    setTimeout(() => { window.location.href = 'profile.html'; }, 2000);
-                                } else {
-                                    throw new Error(verifyData.message || 'Payment verification failed');
-                                }
-                            } catch (err) {
-                                console.error(err);
-                                showToast(err.message || 'Payment verification failed', 'error');
-                                btn.disabled = false;
-                                btn.textContent = 'Place Order';
-                            }
-                        },
-                        modal: {
-                            ondismiss: function() {
-                                KalyraCart.clear().then(() => {
-                                    showToast('Payment cancelled. You can complete it from your profile.', 'error');
-                                    setTimeout(() => { window.location.href = 'profile.html'; }, 2000);
-                                });
-                            }
+                const options = {
+                    key: initData.data.key_id,
+                    amount: initData.data.amount,
+                    currency: initData.data.currency,
+                    name: "Kalyra",
+                    description: "Order " + initData.data.order_ref,
+                    order_id: initData.data.razorpay_order_id,
+                    prefill: initData.data.prefill,
+                    handler: async function (response) {
+                        try {
+                            await KalyraAPI.verifyPayment({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            });
+                            // Backend clears the DB cart on successful verification
+                            KalyraCart.saveLocal([]); // Clear localStorage mirror
+                            showToast('Payment successful! 🎉', 'success');
+                            setTimeout(() => { window.location.href = 'orders.html'; }, 2000);
+                        } catch (err) {
+                            console.error(err);
+                            showToast(err.message || 'Payment verification failed', 'error');
+                            btn.disabled = false;
+                            btn.textContent = 'Place Order';
                         }
-                    };
-                    const rzp = new window.Razorpay(options);
-                    rzp.on('payment.failed', function (response){
-                        showToast(response.error.description || 'Payment failed', 'error');
-                        btn.disabled = false;
-                        btn.textContent = 'Place Order';
-                    });
-                    rzp.open();
-                } else {
-                    // COD flow
-                    await KalyraCart.clear();
-                    showToast('Order placed successfully!', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'profile.html'; // Or order success page
-                    }, 2000);
-                }
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            // User cancelled — do NOT clear cart or create a fake order
+                            // The pending order stays in DB; they can pay from My Orders page
+                            showToast('Payment cancelled. Your order is saved — pay anytime from My Orders.', 'info');
+                            btn.disabled = false;
+                            btn.textContent = 'Place Order';
+                        }
+                    }
+                };
+                const rzp = new window.Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    showToast(response.error.description || 'Payment failed', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Place Order';
+                });
+                rzp.open();
             } else {
-                throw new Error(orderData.message || 'Failed to place order');
+                // COD flow
+                await KalyraCart.clear();
+                showToast('Order placed successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'profile.html'; // Or order success page
+                }, 2000);
             }
 
         } catch (err) {

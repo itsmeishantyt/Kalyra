@@ -156,6 +156,44 @@ const KalyraAPI = {
   async getWishlist() {
     return apiFetch('/wishlist');
   },
+
+  // Orders
+  async getOrders(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return apiFetch(`/orders${qs ? '?' + qs : ''}`);
+  },
+  async getOrder(id) {
+    return apiFetch(`/orders/${id}`);
+  },
+  async cancelOrder(id) {
+    return apiFetch(`/orders/${id}/cancel`, { method: 'PATCH' });
+  },
+  
+  // Addresses
+  async getAddresses() {
+    return apiFetch('/user/addresses');
+  },
+  async createAddress(addressData) {
+    return apiFetch('/user/addresses', { method: 'POST', body: JSON.stringify(addressData) });
+  },
+
+  // Create Order
+  async createOrder(orderData) {
+    return apiFetch('/orders', { method: 'POST', body: JSON.stringify(orderData) });
+  },
+
+  // Validate promo code (no auth required — just needs subtotal)
+  async validatePromo(code, subtotal) {
+    return apiFetch('/orders/validate-promo', { method: 'POST', body: JSON.stringify({ code, subtotal }) });
+  },
+
+  // Payments
+  async initiatePayment(orderId) {
+    return apiFetch('/payments/initiate', { method: 'POST', body: JSON.stringify({ order_id: orderId }) });
+  },
+  async verifyPayment(paymentData) {
+    return apiFetch('/payments/webhook', { method: 'POST', body: JSON.stringify(paymentData) });
+  },
 };
 
 // Expose globally

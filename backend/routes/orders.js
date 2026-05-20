@@ -167,12 +167,13 @@ router.post('/', requireAuth, [
     const total      = Math.round((subtotal - discountAmount + taxAmount) * 100) / 100;
     const orderRef   = generateOrderRef();
 
-    // Transaction: create order + items + deduct stock + clear cart
+    // Transaction: create order + items + deduct stock + clear cart if COD
     const orderId = txn(db, () => {
+      const orderStatus = payment_method === 'cod' ? 'confirmed' : 'pending';
       const orderResult = db.prepare(`
-        INSERT INTO orders (order_ref, user_id, address_id, promocode_id, subtotal, discount_amount, tax_amount, total_amount, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(orderRef, req.user.id, address_id, promoId, subtotal, discountAmount, taxAmount, total, notes || null);
+        INSERT INTO orders (order_ref, user_id, address_id, promocode_id, subtotal, discount_amount, tax_amount, total_amount, status, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(orderRef, req.user.id, address_id, promoId, subtotal, discountAmount, taxAmount, total, orderStatus, notes || null);
 
       const orderId = orderResult.lastInsertRowid;
 
@@ -190,8 +191,10 @@ router.post('/', requireAuth, [
       // Increment promo uses
       if (promoId) db.prepare('UPDATE promocodes SET uses_count = uses_count + 1 WHERE id = ?').run(promoId);
 
-      // Clear cart
-      db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(req.user.id);
+      // Clear cart ONLY if payment method is COD (for online, it is cleared in payment verification)
+      if (payment_method === 'cod') {
+        db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(req.user.id);
+      }
 
       return orderId;
     });

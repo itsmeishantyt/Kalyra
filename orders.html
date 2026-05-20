@@ -112,6 +112,7 @@
     <div id="drawer-content"></div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="scripts/api.js"></script>
 <script src="scripts/auth.js"></script>
 <script src="scripts/cart.js"></script>
@@ -131,11 +132,7 @@ async function loadOrders(page = 1, status = '') {
     try {
         const params = { page, limit: 8 };
         if (status) params.status = status;
-        const qs = new URLSearchParams(params).toString();
-        const res = await window.KalyraAPI?.getOrders ? window.KalyraAPI.getOrders(params) :
-            fetch(`http://localhost:3000/api/v1/orders?${qs}`, {
-                headers: { Authorization: `Bearer ${window.KalyraToken?.getAccess()}` }
-            }).then(r => r.json());
+        const res = await window.KalyraAPI.getOrders(params);
 
         const { data: orders, meta } = res;
         renderOrders(orders, meta, page, status);
@@ -173,6 +170,7 @@ function renderOrders(orders, meta, page, status) {
                     <div class="order-total">₹${Number(o.total_amount).toLocaleString('en-IN')}</div>
                     <div class="order-actions">
                         <button class="btn-order-detail" onclick="openOrderDetail(${o.id}, '${o.order_ref}')">View Details</button>
+                        ${o.status === 'pending' ? `<button class="btn-order-detail" style="background:#2d6a4f; border-color:#2d6a4f;" onclick="payNow(${o.id})">Pay Now</button>` : ''}
                         ${['pending','confirmed'].includes(o.status) ? `<button class="btn-cancel-order" onclick="cancelOrder(${o.id})">Cancel</button>` : ''}
                     </div>
                 </div>
@@ -210,9 +208,7 @@ async function openOrderDetail(orderId, ref) {
     document.body.style.overflow = 'hidden';
 
     try {
-        const res = await fetch(`http://localhost:3000/api/v1/orders/${orderId}`, {
-            headers: { Authorization: `Bearer ${window.KalyraToken?.getAccess()}` }
-        }).then(r => r.json());
+        const res = await window.KalyraAPI.getOrder(orderId);
         const { order, items, payments } = res.data;
 
         const itemRows = items.map(i => `
@@ -249,14 +245,56 @@ function closeDrawer() {
 async function cancelOrder(orderId) {
     if (!confirm('Cancel this order? This cannot be undone.')) return;
     try {
-        const res = await fetch(`http://localhost:3000/api/v1/orders/${orderId}/cancel`, {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${window.KalyraToken?.getAccess()}` }
-        }).then(r => r.json());
+        await window.KalyraAPI.cancelOrder(orderId);
         window.showToast?.('Order cancelled successfully.', 'success');
         loadOrders(currentPage, currentStatus);
     } catch (e) {
-        window.showToast?.('Could not cancel order.', 'error');
+        window.showToast?.(e.message || 'Could not cancel order.', 'error');
+    }
+}
+
+async function payNow(orderId) {
+    try {
+        const res = await window.KalyraAPI.initiatePayment(orderId);
+        const initData = res.data;
+
+        const options = {
+            key: initData.key_id,
+            amount: initData.amount,
+            currency: initData.currency,
+            name: "Kalyra",
+            description: "Order " + initData.order_ref,
+            order_id: initData.razorpay_order_id,
+            prefill: initData.prefill,
+            handler: async function (response) {
+                try {
+                    await window.KalyraAPI.verifyPayment({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature
+                    });
+                    
+                    window.showToast?.('Payment successful!', 'success');
+                    loadOrders(currentPage, currentStatus);
+                } catch (err) {
+                    console.error(err);
+                    window.showToast?.(err.message || 'Payment verification failed', 'error');
+                }
+            },
+            modal: {
+                ondismiss: function() {
+                    window.showToast?.('Payment cancelled.', 'error');
+                }
+            }
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response){
+            window.showToast?.(response.error.description || 'Payment failed', 'error');
+        });
+        rzp.open();
+    } catch (err) {
+        console.error(err);
+        window.showToast?.(err.message || 'Could not initiate payment', 'error');
     }
 }
 

@@ -114,6 +114,11 @@ router.post('/webhook', requireAuth, [
     db.prepare('UPDATE orders SET status = \'confirmed\', updated_at = datetime(\'now\') WHERE razorpay_order_id = ?')
       .run(razorpay_order_id);
 
+    // Clear cart for the user who made the order
+    const payment = db.prepare('SELECT user_id FROM payment_history WHERE razorpay_order_id = ?').get(razorpay_order_id);
+    const userId = payment ? payment.user_id : req.user.id;
+    db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(userId);
+
     return R.success(res, { verified: true }, 'Payment verified successfully');
   } catch (err) { next(err); }
 });
