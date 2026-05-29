@@ -326,7 +326,8 @@ function initShopFilters() {
             if (filters.maxPrice < Number.MAX_VALUE) query.max_price = filters.maxPrice;
             if (filters.searchTerm) query.search = filters.searchTerm;
             if (filters.sortBy === 'price-low') { query.sort = 'price'; query.order = 'asc'; }
-            if (filters.sortBy === 'price-high') { query.sort = 'price'; query.order = 'desc'; }
+            else if (filters.sortBy === 'price-high') { query.sort = 'price'; query.order = 'desc'; }
+            else if (['best-selling', 'trending', 'top-rated', 'new-arrivals'].includes(filters.sortBy)) { query.sort = filters.sortBy; }
 
             cardsContainer.innerHTML = '<div class="loader" style="grid-column: 1/-1; text-align: center; padding: 50px;">Loading products...</div>';
             

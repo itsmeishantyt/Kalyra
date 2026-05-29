@@ -14,7 +14,7 @@ router.get('/', [
   query('search').optional().trim(),
   query('min_price').optional().isFloat({ min: 0 }).toFloat(),
   query('max_price').optional().isFloat({ min: 0 }).toFloat(),
-  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount', 'price']),
+  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount', 'price', 'best-selling', 'trending', 'top-rated', 'new-arrivals']),
   query('order').optional().isIn(['asc', 'desc', 'ASC', 'DESC']),
   query('in_stock').optional().isBoolean().toBoolean(),
 ], validate, (req, res, next) => {
@@ -42,11 +42,15 @@ router.get('/', [
     const whereClause = where.join(' AND ');
 
     const orderMap = {
-      price_asc:  'p.price ASC',
-      price_desc: 'p.price DESC',
-      newest:     'p.created_at DESC',
-      discount:   'p.discount_pct DESC',
-      price:      `p.price ${String(order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC'}`,
+      price_asc:      'p.price ASC',
+      price_desc:     'p.price DESC',
+      newest:         'p.created_at DESC',
+      discount:       'p.discount_pct DESC',
+      price:          `p.price ${String(order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC'}`,
+      'best-selling': '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.product_id = p.id) DESC, p.id DESC',
+      'trending':     '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.product_id = p.id) DESC, p.created_at DESC',
+      'top-rated':    'p.discount_pct DESC, p.id DESC',
+      'new-arrivals': 'p.created_at DESC',
     };
     const orderClause = orderMap[sort] || 'p.created_at DESC';
 
