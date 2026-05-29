@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist — Kalyra</title>
+    <meta name="description" content="Your saved and liked products on Kalyra.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        .account-page { min-height: 100vh; background: #faf8f4; padding-top: 100px; }
+        .account-container { max-width: 1050px; margin: 0 auto; padding: 40px 24px 80px; }
+        .account-heading { font-family: var(--serif); font-size: 36px; font-weight: 400; color: #222; margin-bottom: 6px; }
+        .account-heading em { font-style: italic; color: #B89B71; }
+        .account-sub { font-size: 14px; color: #888; margin-bottom: 36px; font-family: var(--sans); }
+
+        /* Wishlist grid */
+        .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; }
+
+        /* Wishlist card */
+        .wishlist-card { background: #fff; border: 1px solid #ece8e0; border-radius: 16px; overflow: hidden; position: relative; transition: box-shadow .2s, transform .2s; }
+        .wishlist-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+        .wl-img-wrap { position: relative; aspect-ratio: 1; overflow: hidden; background: #f5f2ed; }
+        .wl-img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+        .wishlist-card:hover .wl-img { transform: scale(1.04); }
+        .wl-remove-btn { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.9); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; z-index: 2; }
+        .wl-remove-btn:hover { background: #fce8e8; }
+        .wl-remove-btn svg { color: #c0392b; }
+        .wl-body { padding: 14px 16px; }
+        .wl-name { font-family: var(--sans); font-size: 14px; font-weight: 500; color: #222; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wl-price { font-family: var(--sans); font-size: 15px; font-weight: 600; color: #B89B71; }
+        .wl-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-wl-cart { flex: 1; padding: 9px; border-radius: 10px; background: #B89B71; color: #fff; border: none; font-size: 12px; font-family: var(--sans); cursor: pointer; transition: background .2s; font-weight: 500; }
+        .btn-wl-cart:hover { background: #9a7e57; }
+        .btn-wl-view { flex: 1; padding: 9px; border-radius: 10px; background: #f3f0ea; color: #555; border: none; font-size: 12px; font-family: var(--sans); cursor: pointer; transition: background .2s; }
+        .btn-wl-view:hover { background: #e0d9cf; }
+
+        /* Empty / loading */
+        .wl-empty { text-align: center; padding: 80px 24px; }
+        .wl-empty-icon { font-size: 56px; margin-bottom: 20px; }
+        .wl-empty h3 { font-family: var(--serif); font-size: 26px; color: #333; margin-bottom: 10px; }
+        .wl-empty p { font-size: 14px; color: #888; font-family: var(--sans); margin-bottom: 28px; }
+        .btn-shop-now { display: inline-block; padding: 13px 32px; background: #B89B71; color: #fff; border-radius: 40px; text-decoration: none; font-family: var(--sans); font-size: 14px; font-weight: 500; transition: background .2s; }
+        .btn-shop-now:hover { background: #9a7e57; }
+        .wl-loading { text-align: center; padding: 60px 0; color: #aaa; font-family: var(--sans); font-size: 14px; }
+        .auth-guard { text-align: center; padding: 80px 24px; }
+        .auth-guard h3 { font-family: var(--serif); font-size: 28px; color: #333; margin-bottom: 12px; }
+        .auth-guard p { font-size: 14px; color: #888; font-family: var(--sans); margin-bottom: 28px; }
+        .btn-login-now { display: inline-block; padding: 13px 32px; background: #B89B71; color: #fff; border-radius: 40px; text-decoration: none; font-family: var(--sans); font-size: 14px; cursor: pointer; border: none; }
+
+        @media (max-width: 640px) { .wishlist-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+<nav id="navbar"></nav>
+
+<div class="account-page">
+    <div class="account-container">
+        <h1 class="account-heading">My <em>Wishlist</em></h1>
+        <p class="account-sub" id="wl-subtitle">Products you've saved for later</p>
+
+        <div id="wishlist-root">
+            <div class="wl-loading">Loading your wishlist…</div>
+        </div>
+    </div>
+</div>
+
+<footer id="footer"></footer>
+
+<script src="scripts/api.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/cart.js"></script>
+<script src="scripts/main.js"></script>
+<script>
+const API = 'http://localhost:3000/api/v1';
+
+function authHeaders() {
+    return { 'Content-Type': 'application/json', Authorization: `Bearer ${window.KalyraToken?.getAccess()}` };
+}
+
+async function loadWishlist() {
+    const root = document.getElementById('wishlist-root');
+    root.innerHTML = '<div class="wl-loading">Loading your wishlist…</div>';
+    try {
+        const res = await fetch(`${API}/wishlist`, { headers: authHeaders() }).then(r => r.json());
+        const items = res.data || [];
+        renderWishlist(items);
+    } catch (err) {
+        root.innerHTML = `<div class="wl-empty"><div class="wl-empty-icon">⚠️</div><h3>Could not load wishlist</h3><p>${err.message}</p></div>`;
+    }
+}
+
+function renderWishlist(items) {
+    const root = document.getElementById('wishlist-root');
+    const sub = document.getElementById('wl-subtitle');
+
+    if (!items.length) {
+        root.innerHTML = `
+            <div class="wl-empty">
+                <div class="wl-empty-icon">🤍</div>
+                <h3>Your wishlist is empty</h3>
+                <p>Browse our collections and tap the heart icon to save items you love.</p>
+                <a href="shop.html" class="btn-shop-now">Explore Collection →</a>
+            </div>`;
+        return;
+    }
+
+    if (sub) sub.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} saved`;
+
+    root.innerHTML = `<div class="wishlist-grid">${items.map(item => `
+        <div class="wishlist-card" id="wl-card-${item.product_id}">
+            <div class="wl-img-wrap">
+                ${item.image_url
+                    ? `<img class="wl-img" src="${item.image_url.startsWith('http') ? item.image_url : API.replace('/api/v1','') + item.image_url}" alt="${item.name}" onerror="this.style.display='none'">`
+                    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#d5cdc0;">🛍️</div>`}
+                <button class="wl-remove-btn" onclick="removeFromWishlist(${item.product_id})" title="Remove from wishlist">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </button>
+            </div>
+            <div class="wl-body">
+                <div class="wl-name" title="${item.name}">${item.name}</div>
+                <div class="wl-price">₹${Number(item.price || 0).toLocaleString('en-IN')}</div>
+                <div class="wl-actions">
+                    <button class="btn-wl-cart" onclick="addToCart(${item.product_id}, '${item.name}', ${item.price || 0})">Add to Cart</button>
+                    <button class="btn-wl-view" onclick="window.location.href='product.html?id=${item.product_id}'">View</button>
+                </div>
+            </div>
+        </div>`).join('')}</div>`;
+}
+
+async function removeFromWishlist(productId) {
+    const card = document.getElementById(`wl-card-${productId}`);
+    if (card) { card.style.opacity = '.4'; card.style.pointerEvents = 'none'; }
+    try {
+        await fetch(`${API}/wishlist`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ product_id: productId })
+        });
+        card?.remove();
+        window.showToast?.('Removed from wishlist', 'info');
+        // Reload to update count
+        loadWishlist();
+    } catch {
+        if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
+        window.showToast?.('Could not remove item', 'error');
+    }
+}
+
+async function addToCart(productId, name, price) {
+    await window.KalyraCart?.addItem(productId, 1, null, null, { name, price });
+    window.showToast?.(`${name} added to cart 🛒`, 'success');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (!window.KalyraToken?.isLoggedIn()) {
+            document.getElementById('wishlist-root').innerHTML = `
+                <div class="auth-guard">
+                    <h3>Sign in to view your wishlist</h3>
+                    <p>Save products you love and find them here.</p>
+                    <button class="btn-login-now" onclick="document.querySelector('a[href=\\'#login\\']')?.click()">Sign In</button>
+                </div>`;
+        } else {
+            loadWishlist();
+        }
+    }, 400);
+});
+</script>
+</body>
+</html>

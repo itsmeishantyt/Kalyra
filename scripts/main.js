@@ -1,44 +1,5 @@
-// The CATALOG is now managed in scripts/catalog.js to keep this logic file clean.
-function generateApparelItems() {
-    return [
-        {
-            id: 'beade-kurta',
-            name: 'Cream Beads Embroidery Kurta Set',
-            category: 'apparel',
-            tag: 'New Collection',
-            price: 4999,
-            img: 'assets/beade-embrodery-kurta-set.jpg',
-            description: 'Handcrafted cream kurta featuring intricate beadwork embroidery. Minimalist and premium.'
-        },
-        {
-            id: 'butterfly-kurta',
-            name: 'Butterfly Motif Kurta',
-            category: 'apparel',
-            tag: 'Limited Edition',
-            price: 5499,
-            img: 'assets/butterfly-kurta.jpg',
-            description: 'Modern silhouette with a delicate butterfly motif. Perfect for festive occasions.'
-        },
-        {
-            id: 'ethnic-set',
-            name: 'Artisan Ethnic Ensemble',
-            category: 'apparel',
-            tag: 'Best Seller',
-            price: 6299,
-            img: 'assets/ethnic-piece-kurta.jpg',
-            description: 'A complete artisan-crafted ethnic set with detailed thread work.'
-        },
-        {
-            id: 'streetwear-hoodie',
-            name: 'Urban Streetwear Hoodie',
-            category: 'apparel',
-            tag: 'Exclusive',
-            price: 3299,
-            img: 'assets/streetwear-hoodie.jpg',
-            description: 'Modern oversized fit hoodie with bespoke embroidery accents.'
-        }
-    ];
-}
+// The CATALOG is now managed in scripts/catalog.js, but storefront now uses API directly.
+const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'http://localhost:3000') + url : url;
 
 // Component Loading System
 const components = {
@@ -101,7 +62,7 @@ async function loadAllComponents() {
     await Promise.all(loadPromises);
 
     // Recalculate isShopPage after components are loaded into the DOM
-    const shopGridExists = !!document.getElementById('shop-products-grid');
+    const shopGridExists = !!document.getElementById('shop-items-container') || !!document.querySelector('#shop .products-grid');
     const finalIsShopPage = isShopPage || shopGridExists;
 
     console.log('Components loaded.', { finalIsShopPage, shopGridExists });
@@ -146,14 +107,23 @@ async function loadAllComponents() {
         document.body.insertAdjacentHTML('beforeend', drawersHTML);
     }
 
-    // Load and inject unified login modal
+    // Load and inject login + signup modals
     if (!document.getElementById('login-modal')) {
         try {
             const loginRes = await fetch('components/login-modal.html');
             const loginHTML = await loginRes.text();
             document.body.insertAdjacentHTML('beforeend', loginHTML);
         } catch (e) {
-            console.error('Could not load modal:', e);
+            console.error('Could not load login modal:', e);
+        }
+    }
+    if (!document.getElementById('signup-modal')) {
+        try {
+            const signupRes = await fetch('components/signup-modal.html');
+            const signupHTML = await signupRes.text();
+            document.body.insertAdjacentHTML('beforeend', signupHTML);
+        } catch (e) {
+            console.error('Could not load signup modal:', e);
         }
     }
 
@@ -163,7 +133,7 @@ async function loadAllComponents() {
     initMobileMenu();
     initMobileSearch();
     initGlobalSearch();
-    initModals();
+    // Modal wiring is handled by auth.js (wireModals is called automatically)
 
     if (finalIsShopPage) {
         console.log('Detected Shop Page, initializing filters...');
@@ -192,6 +162,8 @@ async function loadAllComponents() {
         await initProductPage();
     }
 
+    if (window.KalyraCart) window.KalyraCart.init();
+    
     // Always run scroll reveal last
     initScrollReveal();
 }
@@ -210,60 +182,7 @@ function initShopFilters() {
         return;
     }
 
-    // 1. Data Source Selection: Prefer HTML if available
-    let products = [];
-    const htmlCards = Array.from(cardsContainer.querySelectorAll('.product-card'));
-    
-    if (htmlCards.length > 0) {
-        console.log(`Found ${htmlCards.length} products already in HTML. parsing metadata...`);
-        products = htmlCards.map(card => {
-            return {
-                id: card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1]?.split('=')?.[1] || 'generic',
-                name: card.querySelector('.product-name')?.innerText || 'Product',
-                category: card.dataset.category || 'all',
-                price: parseInt(card.dataset.price) || 0,
-                style: card.dataset.style || 'all',
-                img: card.querySelector('img')?.src || '',
-                element: card // Store the element to show/hide instead of re-rendering
-            };
-        });
-    } else {
-        products = window.CATALOG || [];
-        console.log(`No HTML cards found, using global catalog (${products.length} items)`);
-    }
-
-    if (products.length === 0) {
-        console.warn('No products found to display.');
-        return;
-    }
-
-    // 2. Initial Rendering (only if using dynamic data)
-    if (htmlCards.length === 0) {
-        cardsContainer.innerHTML = '';
-        products = products.map((p, index) => {
-            const card = document.createElement('div');
-            card.className = 'product-card shop-card-animate';
-            card.style.animationDelay = `${index * 0.05}s`;
-            card.dataset.category = p.category;
-            card.dataset.price = p.price;
-            card.dataset.style = p.style;
-            card.innerHTML = `
-                <div class="product-img-wrap">
-                    <img src="${p.img}" alt="${p.name}" loading="lazy">
-                    <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                </div>
-                <div class="product-brand">${p.category}</div>
-                <h3 class="product-name">${p.name}</h3>
-                <p class="product-price">₹${p.price.toLocaleString()}</p>
-            `;
-            card.onclick = () => window.location.href = `product.html?id=${p.id}`;
-            cardsContainer.appendChild(card);
-            return { ...p, element: card };
-        });
-    }
-
-    console.log('Products rendered successfully.');
-
+    // Filters state
     const filters = {
         categories: [],
         maxPrice: Number.MAX_VALUE,
@@ -290,7 +209,6 @@ function initShopFilters() {
     overlay?.addEventListener('click', toggleDrawer);
     applyBtn?.addEventListener('click', toggleDrawer);
 
-    const initialCards = products.map(p => p.element);
     const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
     const priceRadios = document.querySelectorAll('input[name="price"]');
     const styleTags = document.querySelectorAll('.style-tag');
@@ -309,55 +227,64 @@ function initShopFilters() {
         });
     });
 
-    const applyFiltersAndSort = () => {
-        let filtered = [...initialCards];
+    const renderProducts = (products) => {
+        cardsContainer.innerHTML = '';
+        if (products.length === 0) {
+            cardsContainer.innerHTML = `
+                <div class="no-results" style="grid-column: 1/-1; padding: 100px 0; text-align: center;">
+                    <p>No products found matching your filters. Try adjusting them.</p>
+                </div>`;
+            return;
+        }
 
-        // 1. Filter
-        filtered = filtered.filter(card => {
-            const cardCategory = card.dataset.category;
-            const cardPrice = parseInt(card.dataset.price);
-            const cardStyle = card.dataset.style;
-            const cardName = card.querySelector('.product-name').textContent.toLowerCase();
-
-            const categoryMatch = filters.categories.length === 0 || filters.categories.includes(cardCategory);
-            const priceMatch = (filters.maxPrice === 2000) ? cardPrice >= 2000 : cardPrice <= filters.maxPrice;
-            const styleMatch = !filters.style || cardStyle === filters.style;
-            const searchMatch = !filters.searchTerm || cardName.includes(filters.searchTerm.toLowerCase());
-
-            return categoryMatch && priceMatch && styleMatch && searchMatch;
+        products.forEach((p, index) => {
+            const card = document.createElement('div');
+            card.className = 'product-card shop-card-animate';
+            card.style.animationDelay = `${index * 0.05}s`;
+            
+            // Format price
+            const price = typeof p.price === 'number' ? p.price : 0;
+            
+            card.innerHTML = `
+                <div class="product-img-wrap">
+                    <img src="${getImageUrl(p.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
+                    <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+                </div>
+                <div class="product-brand">${p.category}</div>
+                <h3 class="product-name">${p.name}</h3>
+                <p class="product-price">₹${price.toLocaleString()}</p>
+            `;
+            card.onclick = () => window.location.href = `product.html?id=${p.id}`;
+            cardsContainer.appendChild(card);
         });
+    };
 
-        // 2. Sort
-        if (filters.sortBy === 'price-low') filtered.sort((a, b) => parseInt(a.dataset.price) - parseInt(b.dataset.price));
-        if (filters.sortBy === 'price-high') filtered.sort((a, b) => parseInt(b.dataset.price) - parseInt(a.dataset.price));
-        if (filters.sortBy === 'alphabet-az') filtered.sort((a, b) => a.querySelector('.product-name').textContent.localeCompare(b.querySelector('.product-name').textContent));
-        if (filters.sortBy === 'alphabet-za') filtered.sort((a, b) => b.querySelector('.product-name').textContent.localeCompare(a.querySelector('.product-name').textContent));
+    const applyFiltersAndSort = async () => {
+        try {
+            const query = {};
+            if (filters.categories.length > 0) query.category = filters.categories.join(',');
+            if (filters.maxPrice < Number.MAX_VALUE) query.max_price = filters.maxPrice;
+            if (filters.searchTerm) query.search = filters.searchTerm;
+            if (filters.sortBy === 'price-low') { query.sort = 'price'; query.order = 'asc'; }
+            if (filters.sortBy === 'price-high') { query.sort = 'price'; query.order = 'desc'; }
 
-        // 3. Render
-        if (cardsContainer) {
-            cardsContainer.innerHTML = '';
-            if (filtered.length === 0) {
-                cardsContainer.innerHTML = `
-                    <div class="no-results">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            <line x1="11" y1="8" x2="11" y2="14"></line>
-                            <line x1="8" y1="11" x2="14" y2="11"></line>
-                        </svg>
-                        <p>No treasures found matching your search. Try adjusting your filters or search term.</p>
-                        <button class="btn-ghost" onclick="window.location.href='shop.html'">Clear all filters</button>
-                    </div>
-                `;
-                cardsContainer.style.display = 'block'; // Ensure no-results is centered in grid container if it's a flex/block child
-            } else {
-                cardsContainer.style.display = ''; // Reset to CSS default (grid)
-                filtered.forEach(card => {
-                    card.style.display = 'block';
-                    card.style.opacity = '1';
-                    cardsContainer.appendChild(card);
-                });
+            cardsContainer.innerHTML = '<div class="loader" style="grid-column: 1/-1; text-align: center; padding: 50px;">Loading products...</div>';
+            
+            const response = await window.KalyraAPI.getProducts(query);
+            let products = response.data || [];
+            if (filters.sortBy === 'alphabet-az') products.sort((a, b) => a.name.localeCompare(b.name));
+            if (filters.sortBy === 'alphabet-za') products.sort((a, b) => b.name.localeCompare(a.name));
+            
+            // Limit to 4 products on the home page
+            const isShopPage = window.location.href.toLowerCase().includes('shop.html');
+            if (!isShopPage) {
+                products = products.slice(0, 4);
             }
+            
+            renderProducts(products);
+        } catch (error) {
+            console.error('Failed to fetch products:', error);
+            cardsContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">Failed to load products.</div>';
         }
     };
 
@@ -415,9 +342,8 @@ function initShopFilters() {
         if (mobileInput) mobileInput.value = initialSearch;
     }
 
-    if (initialCat || initialSearch) {
-        applyFiltersAndSort();
-    }
+    // Always fetch and render products initially
+    applyFiltersAndSort();
 }
 
 function initMobileSearch() {
@@ -707,19 +633,14 @@ function initGlobalSearch() {
         mobileDropdown?.appendChild(mobileAutocomplete);
     }
 
-    const getAllProducts = () => {
-        const catalog = window.CATALOG || [];
-        const apparel = typeof generateApparelItems === 'function' ? generateApparelItems() : [];
-        return [...catalog, ...apparel];
-    };
-
     const handleSearch = (query) => {
         if (!query.trim()) return;
         window.location.href = `shop.html?q=${encodeURIComponent(query.trim())}`;
     };
 
-    const renderAutocomplete = (input, container) => {
-        const query = input.value.trim().toLowerCase();
+    let searchTimeout = null;
+    const renderAutocomplete = async (input, container) => {
+        const query = input.value.trim();
         
         if (query.length < 2) {
             container.classList.remove('active');
@@ -727,34 +648,38 @@ function initGlobalSearch() {
             return;
         }
 
-        const products = getAllProducts();
-        const matches = products.filter(p => 
-            p.name.toLowerCase().includes(query) || 
-            (p.category && p.category.toLowerCase().includes(query))
-        ).slice(0, 6);
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await window.KalyraAPI.getProducts({ search: query, limit: 6 });
+                const matches = response.data || [];
 
-        if (matches.length === 0) {
-            container.innerHTML = `
-                <div class="autocomplete-empty">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px; opacity: 0.5;">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <p style="margin: 0; font-size: 13px;">No results found</p>
-                </div>`;
-        } else {
-            container.innerHTML = matches.map(p => `
-                <div class="autocomplete-item" onclick="window.location.href='product.html?id=${p.id}'">
-                    <img src="${p.img}" alt="${p.name}" class="autocomplete-img" onerror="this.src='https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'">
-                    <div class="autocomplete-info">
-                        <span class="autocomplete-name">${p.name}</span>
-                        <span class="autocomplete-price">₹${p.price.toLocaleString()}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
+                if (matches.length === 0) {
+                    container.innerHTML = `
+                        <div class="autocomplete-empty">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px; opacity: 0.5;">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <p style="margin: 0; font-size: 13px;">No results found</p>
+                        </div>`;
+                } else {
+                    container.innerHTML = matches.map(p => `
+                        <div class="autocomplete-item" onclick="window.location.href='product.html?id=${p.id}'">
+                            <img src="${getImageUrl(p.image_url) || 'https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'}" alt="${p.name}" class="autocomplete-img" onerror="this.src='https://placehold.co/48x48/F5F0E8/8C7E72?text=Item'">
+                            <div class="autocomplete-info">
+                                <span class="autocomplete-name">${p.name}</span>
+                                <span class="autocomplete-price">₹${(typeof p.price === 'number' ? p.price : 0).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
 
-        container.classList.add('active');
+                container.classList.add('active');
+            } catch (err) {
+                console.error('Search error:', err);
+            }
+        }, 300);
     };
 
     // Desktop Events
@@ -809,10 +734,20 @@ async function initProductPage() {
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
+        const container = document.getElementById('product-page-content');
+        if (!container) return;
+
+        container.innerHTML = '<div class="loader" style="padding: 100px; text-align: center;">Loading product details...</div>';
         
-        // Smart Search: Check Catalog -> Check Apparel -> Check URL Params
-        let product = (window.CATALOG || []).find(p => p.id === productId) || 
-                      generateApparelItems().find(p => p.id === productId);
+        let product = null;
+        if (productId) {
+            try {
+                const response = await window.KalyraAPI.getProduct(productId);
+                product = response.data;
+            } catch (err) {
+                console.error('Failed to load product from API', err);
+            }
+        }
 
         // Fallback: If not in catalog, try to build from URL parameters
         if (!product && urlParams.get('name')) {
@@ -827,9 +762,6 @@ async function initProductPage() {
             };
         }
         
-        const container = document.getElementById('product-page-content');
-        if (!container) return;
-        
         if (!product) {
             container.innerHTML = `
                 <div class="product-not-found" style="text-align:center; padding: 100px 20px;">
@@ -841,7 +773,7 @@ async function initProductPage() {
             return;
         }
         
-        renderPDP(container, product);
+        await renderPDP(container, product);
         initScrollReveal();
         
     } catch (error) {
@@ -849,34 +781,36 @@ async function initProductPage() {
     }
 }
 
-function renderPDP(container, product) {
+async function renderPDP(container, product) {
     // Set document title
     document.title = `${product.name} — Kalyra Boutique`;
     
     // Related products (prioritize same category)
     const isApparel = product.category === 'apparel';
-    let related;
+    let related = [];
     
-    if (isApparel) {
-        related = generateApparelItems().filter(p => p.id !== product.id).slice(0, 4);
-    } else {
-        related = window.CATALOG.filter(p => p.category === product.category && p.id !== product.id);
-        // If fewer than 4 items, fill up with other products to maintain a full grid
+    try {
+        const response = await window.KalyraAPI.getProducts({ category: product.category, limit: 5 });
+        related = (response.data || []).filter(p => String(p.id) !== String(product.id)).slice(0, 4);
+        
         if (related.length < 4) {
-            const others = window.CATALOG.filter(p => p.category !== product.category && p.id !== product.id);
+            const extraRes = await window.KalyraAPI.getProducts({ limit: 10 });
+            const others = (extraRes.data || []).filter(p => String(p.id) !== String(product.id) && p.category !== product.category);
             const needed = 4 - related.length;
             related = [...related, ...others.slice(0, needed)];
-        } else {
-            related = related.slice(0, 4);
         }
+    } catch (err) {
+        console.error('Failed to load related products', err);
     }
     
+    const prodImg = getImageUrl(product.image_url) || product.img || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product';
+
     container.innerHTML = `
         <div class="pdp-wrapper">
             <div class="pdp-container">
                 <div class="pdp-gallery">
                     <div class="pdp-main-img">
-                        <img src="${product.img}" alt="${product.name}" id="main-product-image">
+                        <img src="${prodImg}" alt="${product.name}" id="main-product-image">
                         <div class="pdp-custom-cursor" id="pdp-custom-cursor">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
@@ -895,8 +829,8 @@ function renderPDP(container, product) {
                         </button>
                     </div>
                     <div class="pdp-thumbnails">
-                        <div class="thumb active" onclick="changePDPImage('${product.img}', this)">
-                            <img src="${product.img}" alt="${product.name}">
+                        <div class="thumb active" onclick="changePDPImage('${prodImg}', this)">
+                            <img src="${prodImg}" alt="${product.name}">
                         </div>
                         <div class="thumb" onclick="changePDPImage('https://placehold.co/600x800/000000/000000', this)">
                             <img src="https://placehold.co/600x800/000000/000000" alt="Placeholder">
@@ -911,11 +845,11 @@ function renderPDP(container, product) {
                 </div>
                 
                 <div class="pdp-info">
-                    <div class="pdp-category">${product.category.charAt(0).toUpperCase() + product.category.slice(1)} Collection</div>
+                    <div class="pdp-category">${product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1) : ''} Collection</div>
                     <h1 class="pdp-title">${product.name}</h1>
                     
-                    <p class="pdp-price">₹${product.price.toLocaleString()}</p>
-                    <p class="pdp-desc">${product.description}</p>
+                    <p class="pdp-price">₹${(typeof product.price === 'number' ? product.price : 0).toLocaleString()}</p>
+                    <p class="pdp-desc">${product.description || ''}</p>
                     
                     <div class="pdp-options">
                         <div class="option-row">
@@ -940,7 +874,7 @@ function renderPDP(container, product) {
                         <div class="accordion-item">
                             <button class="accordion-trigger">Piece Details <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
                             <div class="accordion-content">
-                                <p>${product.description} Each piece is uniquely handcrafted using premium materials, ensuring that no two items are exactly alike. Designed to bring a touch of artisanal elegance to your personal space.</p>
+                                <p>${product.description || ''} Each piece is uniquely handcrafted using premium materials, ensuring that no two items are exactly alike. Designed to bring a touch of artisanal elegance to your personal space.</p>
                             </div>
                         </div>
                         <div class="accordion-item">
@@ -977,11 +911,11 @@ function renderPDP(container, product) {
                     ${related.map(r => `
                         <div class="product-card" onclick="window.location.href='product.html?id=${r.id}'">
                             <div class="product-img-wrap">
-                                <img src="${r.img}" alt="${r.name}">
+                                <img src="${getImageUrl(r.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${r.name}" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
                             </div>
-                            <div class="product-brand">${r.category.charAt(0).toUpperCase() + r.category.slice(1)}</div>
+                            <div class="product-brand">${r.category ? r.category.charAt(0).toUpperCase() + r.category.slice(1) : ''}</div>
                             <h3 class="product-name">${r.name}</h3>
-                            <p class="product-price">₹${r.price.toLocaleString()}</p>
+                            <p class="product-price">₹${(typeof r.price === 'number' ? r.price : 0).toLocaleString()}</p>
                         </div>
                     `).join('')}
                 </div>
@@ -990,7 +924,7 @@ function renderPDP(container, product) {
 
         <div class="pdp-lightbox" id="pdp-lightbox">
             <div class="lightbox-content">
-                <img src="${product.img}" alt="${product.name}" class="lightbox-img" id="lightbox-img">
+                <img src="${prodImg}" alt="${product.name}" class="lightbox-img" id="lightbox-img">
             </div>
             <div class="lightbox-controls">
                 <button class="lb-btn" id="lb-prev" aria-label="Previous">
@@ -1081,12 +1015,17 @@ function renderPDP(container, product) {
         });
     });
     
-    // Action Logic
-    document.getElementById('pdp-add-cart')?.addEventListener('click', () => {
-        alert(`${product.name} added to cart!`);
-    });
+    // Action Logic — dispatch pdp-ready so cart.js wires the button
+    window.dispatchEvent(new CustomEvent('kalyra:pdp-ready', { detail: { product } }));
     
-    document.getElementById('pdp-buy-now')?.addEventListener('click', () => {
+    document.getElementById('pdp-buy-now')?.addEventListener('click', async () => {
+        const selectedSize  = document.querySelector('.size-pill.active')?.textContent || null;
+        const selectedColor = document.querySelector('.color-pill.active')?.textContent || null;
+        if (product) {
+            await (window.KalyraCart?.addItem(product.id, 1, selectedSize, selectedColor, {
+                name: product.name, price: product.price, image_url: prodImg,
+            }) ?? Promise.resolve());
+        }
         window.location.href = 'cart.html';
     });
     
@@ -1403,200 +1342,9 @@ function initGoogleAuth() {
 }
 
 // ── APPAREL SECTION LOGIC ──
-
-const APPAREL_CONFIG = {
-    names: ["Beads Embroidery Piece", "Streetwear Tee", "Floral Kurta Set", "Embroidered Co-ord Set"],
-    categories: ["Curated Embroidery", "Modern Streetwear", "Ethnic Ensemble"],
-    statuses: [
-        { label: "Ready to Ship", class: "ready", btn: "Add to Cart" },
-        { label: "Limited Stock", class: "limited", btn: "Buy Now" },
-        { label: "Restocking Soon", class: "sold-out", btn: "Notify Me" },
-        { label: "Pre-Order Open", class: "pre-order", btn: "Pre-Order Now" },
-        { label: "Bulk Orders Available", class: "bulk", btn: "Buy Now" }
-    ],
-    tags: ["Best Seller", "Signature Piece", "New Drop", "Trending Now", "Limited Edition", "Premium Choice", "Editor's Pick"]
-};
-
-// Global store for generated apparel
-let PERSISTED_APPAREL = null;
-
-function generateApparelItems() {
-    if (PERSISTED_APPAREL) return PERSISTED_APPAREL;
-
-    PERSISTED_APPAREL = Array.from({ length: 12 }, (_, i) => {
-        const name = APPAREL_CONFIG.names[Math.floor(Math.random() * APPAREL_CONFIG.names.length)];
-        const category = APPAREL_CONFIG.categories[Math.floor(Math.random() * APPAREL_CONFIG.categories.length)];
-        const price = Math.floor(Math.random() * (8999 - 1499) + 1499);
-        const status = APPAREL_CONFIG.statuses[Math.floor(Math.random() * APPAREL_CONFIG.statuses.length)];
-        const tag = APPAREL_CONFIG.tags[Math.floor(Math.random() * APPAREL_CONFIG.tags.length)];
-        
-        return { 
-            id: `apparel-${i}`, 
-            name, 
-            price, 
-            status, 
-            tag,
-            category,
-            img: "https://placehold.co/600x800/F5F0E8/8C7E72?text=Apparel+Preview",
-            description: "An exclusive piece from our handcrafted Apparel collection. This garment blends traditional decorative embroidery with modern, minimal silhouettes for a truly premium feel."
-        };
-    });
-    return PERSISTED_APPAREL;
-}
-
-function initApparelPage() {
-    console.log('Initializing Apparel Page with Filters...');
-    const container = document.getElementById('apparel-products-grid');
-    if (!container) return;
-
-    const apparelItems = generateApparelItems();
-    const filters = {
-        categories: [],
-        maxPrice: Number.MAX_VALUE,
-        style: null,
-        sortBy: 'featured'
-    };
-
-    const renderItems = (items) => {
-        container.innerHTML = '';
-        if (items.length === 0) {
-            container.innerHTML = `
-                <div class="no-results" style="grid-column: 1/-1; padding: 100px 0;">
-                    <p>No apparel found matching your filters. Try adjusting them.</p>
-                </div>`;
-            return [];
-        }
-
-        return items.map((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'product-card apparel-card shop-card-animate';
-            card.style.animationDelay = `${index * 0.05}s`;
-            card.style.cursor = 'pointer';
-            
-            // Add Data Attributes for filtering
-            card.dataset.category = item.category;
-            card.dataset.price = item.price;
-            card.dataset.tag = item.tag;
-
-            card.innerHTML = `
-                <div class="product-img-wrap">
-                    <div class="placeholder-img">Apparel Image</div>
-                    <div class="product-badge-container">
-                        <span class="status-badge ${item.status.class}">${item.status.label}</span>
-                    </div>
-                    <div class="product-add">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                    </div>
-                </div>
-                <div class="product-info-minimal">
-                    <span class="premium-tag">${item.tag}</span>
-                    <h3 class="product-name">${item.name}</h3>
-                    <p class="product-price">₹${item.price.toLocaleString()}</p>
-                </div>
-            `;
-
-            card.addEventListener('click', () => {
-                window.location.href = `product.html?id=${item.id}`;
-            });
-            
-            container.appendChild(card);
-            return card;
-        });
-    };
-
-    let allCards = renderItems(apparelItems);
-
-    const applyFiltersAndSort = () => {
-        let filtered = [...apparelItems];
-
-        // 1. Filter
-        filtered = filtered.filter(item => {
-            const categoryMatch = filters.categories.length === 0 || filters.categories.includes(item.category);
-            const priceMatch = (filters.isPremiumPrice) ? item.price >= filters.maxPrice : item.price <= filters.maxPrice;
-            const styleMatch = !filters.style || item.tag === filters.style;
-
-            return categoryMatch && priceMatch && styleMatch;
-        });
-
-        // 2. Sort
-        if (filters.sortBy === 'price-low') filtered.sort((a, b) => a.price - b.price);
-        if (filters.sortBy === 'price-high') filtered.sort((a, b) => b.price - a.price);
-        if (filters.sortBy === 'alphabet-az') filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-        // 3. Render
-        renderItems(filtered);
-    };
-
-    // Initialize UI Triggers
-    const drawer = document.getElementById('filter-drawer');
-    const overlay = document.getElementById('filter-overlay');
-    const toggleBtn = document.getElementById('filter-toggle');
-    const closeBtn = document.getElementById('filter-close');
-    const applyBtn = document.getElementById('apply-filters');
-    const sortDropdown = document.getElementById('sort-dropdown');
-
-    const toggleDrawer = () => {
-        drawer?.classList.toggle('active');
-        overlay?.classList.toggle('active');
-        document.body.style.overflow = drawer?.classList.contains('active') ? 'hidden' : '';
-    };
-
-    toggleBtn?.addEventListener('click', toggleDrawer);
-    closeBtn?.addEventListener('click', toggleDrawer);
-    overlay?.addEventListener('click', toggleDrawer);
-    applyBtn?.addEventListener('click', toggleDrawer);
-
-    // Filter Listeners
-    document.querySelectorAll('input[name="apparel-cat"]').forEach(cb => {
-        cb.addEventListener('change', () => {
-            filters.categories = Array.from(document.querySelectorAll('input[name="apparel-cat"]:checked')).map(c => c.value);
-            applyFiltersAndSort();
-        });
-    });
-
-    document.querySelectorAll('input[name="price"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            const val = radio.value;
-            if (val.includes('+')) {
-                filters.maxPrice = 8000;
-                filters.isPremiumPrice = true;
-            } else {
-                filters.maxPrice = parseInt(val);
-                filters.isPremiumPrice = false;
-            }
-            applyFiltersAndSort();
-        });
-    });
-
-    document.querySelectorAll('.style-tag').forEach(tag => {
-        tag.addEventListener('click', () => {
-            document.querySelectorAll('.style-tag').forEach(t => t.classList.remove('active'));
-            if (filters.style === tag.textContent) {
-                filters.style = null;
-            } else {
-                filters.style = tag.textContent;
-                tag.classList.add('active');
-            }
-            applyFiltersAndSort();
-        });
-    });
-
-    sortDropdown?.addEventListener('change', (e) => {
-        filters.sortBy = e.target.value;
-        applyFiltersAndSort();
-    });
-
-    // View Toggles
-    const viewBtns = document.querySelectorAll('.view-btn');
-    viewBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const view = btn.dataset.view;
-            viewBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (container) container.className = `products-grid ${view}`;
-        });
-    });
-}
+// Apparel page now shares the same filtering engine as the Shop page.
+// The DOM element ID in apparel.html was changed to #shop-items-container
+// so that initShopFilters() will automatically manage it.
 
 // Start loading when page is ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -1607,13 +1355,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Final check for page types
         const path = window.location.pathname;
-        const isApparelPage = path.includes('apparel.html');
         const isProductPage = path.includes('product.html');
-        const isShopPage = path.includes('shop.html');
         
-        if (isApparelPage) initApparelPage();
-        if (isProductPage) initProductPage();
         // initShopFilters() is already called in loadAllComponents via waitForGrid()
+        // initApparelPage is no longer needed.
+        if (isProductPage) initProductPage();
     });
 });
 

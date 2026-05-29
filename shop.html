@@ -15,6 +15,8 @@
         rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -184,182 +186,8 @@
 
             <!-- Products Grid -->
             <div class="shop-grid-wrap">
-                <div id="shop-items-container" class="products-grid grid-4" data-dynamic="false">
-                    <!-- Product 1 -->
-                    <div class="product-card" data-category="wearable" data-price="1499" data-style="Love & Aesthetic" onclick="window.location.href='product.html?id=boho-tote'">
-                        <div class="product-img-wrap">
-                            <img src="assets/anklet-embroidery-tote.jpg" alt="Boho Embroidery Tote" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Wearable Art</div>
-                        <h3 class="product-name">Boho Embroidery Tote</h3>
-                        <p class="product-price">₹1,499</p>
-                    </div>
-
-                    <!-- Product 2 -->
-                    <div class="product-card" data-category="bespoke" data-price="2499" data-style="Bold & Expressive" onclick="window.location.href='product.html?id=midnight-nameplate'">
-                        <div class="product-img-wrap">
-                            <img src="assets/black-resin-name-plate.jpg" alt="Midnight Resin Nameplate" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Bespoke Creations</div>
-                        <h3 class="product-name">Midnight Resin Nameplate</h3>
-                        <p class="product-price">₹2,499</p>
-                    </div>
-
-                    <!-- Product 3 -->
-                    <div class="product-card" data-category="bespoke" data-price="2999" data-style="Professional" onclick="window.location.href='product.html?id=ceo-nameplate'">
-                        <div class="product-img-wrap">
-                            <img src="assets/ceo-resin-name-plate.jpg" alt="Executive CEO Nameplate" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Bespoke Creations</div>
-                        <h3 class="product-name">Executive CEO Nameplate</h3>
-                        <p class="product-price">₹2,999</p>
-                    </div>
-
-                    <!-- Product 4 -->
-                    <div class="product-card" data-category="bespoke" data-price="2799" data-style="Professional" onclick="window.location.href='product.html?id=doctor-nameplate'">
-                        <div class="product-img-wrap">
-                            <img src="assets/doctor-resin-name-plate.jpg" alt="Medical Professional Nameplate" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Bespoke Creations</div>
-                        <h3 class="product-name">Medical Professional Nameplate</h3>
-                        <p class="product-price">₹2,799</p>
-                    </div>
-
-                    <!-- Product 5 -->
-                    <div class="product-card" data-category="artistry" data-price="3499" data-style="Bold & Expressive" onclick="window.location.href='product.html?id=floral-mosaic'">
-                        <div class="product-img-wrap">
-                            <img src="assets/floral-gem-art.jpg" alt="Floral Gem Mosaic" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Artistry Collection</div>
-                        <h3 class="product-name">Floral Gem Mosaic</h3>
-                        <p class="product-price">₹3,499</p>
-                    </div>
-
-                    <!-- Product 6 -->
-                    <div class="product-card" data-category="living" data-price="899" data-style="Calm & Minimal" onclick="window.location.href='product.html?id=spring-coasters'">
-                        <div class="product-img-wrap">
-                            <img src="assets/floral-resin-coasters.jpg" alt="Spring Blossom Coasters" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Living Spaces</div>
-                        <h3 class="product-name">Spring Blossom Coasters</h3>
-                        <p class="product-price">₹899</p>
-                    </div>
-
-                    <!-- Product 7 -->
-                    <div class="product-card" data-category="living" data-price="999" data-style="Love & Aesthetic" onclick="window.location.href='product.html?id=petal-coasters'">
-                        <div class="product-img-wrap">
-                            <img src="assets/flower-shaped-resin-coasters.jpg" alt="Botanical Petal Coasters" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Living Spaces</div>
-                        <h3 class="product-name">Botanical Petal Coasters</h3>
-                        <p class="product-price">₹999</p>
-                    </div>
-
-                    <!-- Product 8 -->
-                    <div class="product-card" data-category="mandala" data-price="1999" data-style="Spiritual Mandala" onclick="window.location.href='product.html?id=divine-mandala'">
-                        <div class="product-img-wrap">
-                            <img src="assets/mandala-art-sketchbook.jpg" alt="Divine Harmony Mandala" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Mandala Collection</div>
-                        <h3 class="product-name">Divine Harmony Mandala</h3>
-                        <p class="product-price">₹1,999</p>
-                    </div>
-
-                    <!-- Product 9 -->
-                    <div class="product-card" data-category="mandala" data-price="4299" data-style="Spiritual Mandala" onclick="window.location.href='product.html?id=butterfly-mirror'">
-                        <div class="product-img-wrap">
-                            <img src="assets/mirror-butterfly-art.jpg" alt="Ethereal Butterfly Mirror Art" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Mandala Collection</div>
-                        <h3 class="product-name">Ethereal Butterfly Mirror Art</h3>
-                        <p class="product-price">₹4,299</p>
-                    </div>
-
-                    <!-- Product 10 -->
-                    <div class="product-card" data-category="artistry" data-price="5999" data-style="Bold & Expressive" onclick="window.location.href='product.html?id=horse-portrait'">
-                        <div class="product-img-wrap">
-                            <img src="assets/mirror-horse-portrait.jpg" alt="Majestic Horse Portrait" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Artistry Collection</div>
-                        <h3 class="product-name">Majestic Horse Portrait</h3>
-                        <p class="product-price">₹5,999</p>
-                    </div>
-
-                    <!-- Product 11 -->
-                    <div class="product-card" data-category="bespoke" data-price="499" data-style="Love & Aesthetic" onclick="window.location.href='product.html?id=ocean-keychain'">
-                        <div class="product-img-wrap">
-                            <img src="assets/ocean-keychain-sakshi.jpg" alt="Azure Ocean Keychain" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Bespoke Creations</div>
-                        <h3 class="product-name">Azure Ocean Keychain</h3>
-                        <p class="product-price">₹499</p>
-                    </div>
-
-                    <!-- Product 12 -->
-                    <div class="product-card" data-category="artistry" data-price="4899" data-style="Love & Aesthetic" onclick="window.location.href='product.html?id=pearl-portrait'">
-                        <div class="product-img-wrap">
-                            <img src="assets/pearl-hat-portrait.jpg" alt="Lady in Pearls Portrait" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Artistry Collection</div>
-                        <h3 class="product-name">Lady in Pearls Portrait</h3>
-                        <p class="product-price">₹4,899</p>
-                    </div>
-
-                    <!-- Product 13 -->
-                    <div class="product-card" data-category="living" data-price="1299" data-style="Calm & Minimal" onclick="window.location.href='product.html?id=golden-coasters'">
-                        <div class="product-img-wrap">
-                            <img src="assets/resin-coasters-gold.jpg" alt="Golden Shore Resin Coasters" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Living Spaces</div>
-                        <h3 class="product-name">Golden Shore Resin Coasters</h3>
-                        <p class="product-price">₹1,299</p>
-                    </div>
-
-                    <!-- Product 14 -->
-                    <div class="product-card" data-category="bespoke" data-price="2699" data-style="Bold & Expressive" onclick="window.location.href='product.html?id=shah-nameplate'">
-                        <div class="product-img-wrap">
-                            <img src="assets/resin-name-plate-shah.jpg" alt="Elegant Family Nameplate" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Bespoke Creations</div>
-                        <h3 class="product-name">Elegant Family Nameplate</h3>
-                        <p class="product-price">₹2,699</p>
-                    </div>
-
-                    <!-- Product 15 -->
-                    <div class="product-card" data-category="wearable" data-price="1399" data-style="Love & Aesthetic" onclick="window.location.href='product.html?id=sunflower-tote'">
-                        <div class="product-img-wrap">
-                            <img src="assets/sunflower-tote.jpg" alt="Sun-Kissed Sunflower Tote" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Wearable Art</div>
-                        <h3 class="product-name">Sun-Kissed Sunflower Tote</h3>
-                        <p class="product-price">₹1,399</p>
-                    </div>
-
-                    <!-- Product 16 -->
-                    <div class="product-card" data-category="bespoke" data-price="3899" data-style="Spiritual Mandala" onclick="window.location.href='product.html?id=wedding-plate'">
-                        <div class="product-img-wrap">
-                            <img src="assets/wedding-resin-plate.jpg" alt="Eternal Vows Wedding Plate" loading="lazy">
-                            <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-                        </div>
-                        <div class="product-brand">Bespoke Creations</div>
-                        <h3 class="product-name">Eternal Vows Wedding Plate</h3>
-                        <p class="product-price">₹3,899</p>
-                    </div>
+                <div id="shop-items-container" class="products-grid grid-4" data-dynamic="true">
+                    <!-- Products will be injected dynamically -->
                 </div>
             </div>
         </div>
@@ -426,7 +254,9 @@
         </div>
     </footer>
 
-    <script src="scripts/catalog.js"></script>
+    <script src="scripts/api.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/cart.js"></script>
     <script src="scripts/main.js"></script>
 </body>
 

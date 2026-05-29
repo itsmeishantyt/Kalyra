@@ -115,19 +115,27 @@
             </div>
             <div class="drawer-content">
                 <div class="filter-group">
-                    <h4>Collections</h4>
+                    <h4>Categories</h4>
                     <div class="filter-options">
                         <label class="custom-check">
-                            <input type="checkbox" name="apparel-cat" value="Curated Embroidery">
-                            <span class="checkmark"></span> Embroidery Pieces
+                            <input type="checkbox" name="category" value="Dresses">
+                            <span class="checkmark"></span> Dresses
                         </label>
                         <label class="custom-check">
-                            <input type="checkbox" name="apparel-cat" value="Modern Streetwear">
-                            <span class="checkmark"></span> Modern Streetwear
+                            <input type="checkbox" name="category" value="Bottomwear">
+                            <span class="checkmark"></span> Bottomwear
                         </label>
                         <label class="custom-check">
-                            <input type="checkbox" name="apparel-cat" value="Ethnic Ensemble">
-                            <span class="checkmark"></span> Ethnic Ensembles
+                            <input type="checkbox" name="category" value="Kurtas">
+                            <span class="checkmark"></span> Kurtas
+                        </label>
+                        <label class="custom-check">
+                            <input type="checkbox" name="category" value="Outerwear">
+                            <span class="checkmark"></span> Outerwear
+                        </label>
+                        <label class="custom-check">
+                            <input type="checkbox" name="category" value="Topwear">
+                            <span class="checkmark"></span> Topwear
                         </label>
                     </div>
                 </div>
@@ -174,9 +182,9 @@
         </div>
         <div class="filter-overlay" id="filter-overlay"></div>
 
-        <!-- Apparel Grid — populated by initApparelPage() in main.js -->
+        <!-- Apparel Grid -->
         <div class="shop-grid-wrap">
-            <div class="products-grid grid-4" id="apparel-products-grid"></div>
+            <div class="products-grid grid-4" id="shop-items-container" data-dynamic="true"></div>
         </div>
     </section>
 
@@ -238,7 +246,10 @@
         </div>
     </footer>
 
-    <script src="scripts/catalog.js"></script>
+    <script src="scripts/api.js"></script>
+    <script src="scripts/auth.js"></script>
+    <script src="scripts/cart.js"></script>
+
     <script src="scripts/main.js"></script>
 </body>
 </html>

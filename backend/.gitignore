@@ -1,0 +1,6 @@
+# Kalyra Backend — .gitignore
+node_modules/
+.env
+db/kalyra.db*
+uploads/
+*.log

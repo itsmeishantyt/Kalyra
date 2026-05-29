@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings — Kalyra</title>
+    <meta name="description" content="Manage your Kalyra profile, email, phone, and password.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        .account-page { min-height: 100vh; background: #faf8f4; padding-top: 100px; }
+        .account-container { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+        .account-heading { font-family: var(--serif); font-size: 36px; font-weight: 400; color: #222; margin-bottom: 6px; }
+        .account-heading em { font-style: italic; color: #B89B71; }
+        .account-sub { font-size: 14px; color: #888; margin-bottom: 36px; font-family: var(--sans); }
+
+        /* Profile hero */
+        .profile-hero { display: flex; align-items: center; gap: 24px; background: #fff; border: 1px solid #ece8e0; border-radius: 20px; padding: 28px 32px; margin-bottom: 28px; }
+        .profile-avatar-wrap { position: relative; flex-shrink: 0; }
+        .profile-avatar { width: 84px; height: 84px; border-radius: 50%; background: #B89B71; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 600; font-family: var(--sans); overflow: hidden; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-avatar-edit { position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; border-radius: 50%; background: #B89B71; color: #fff; border: 2px solid #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+        .profile-avatar-edit:hover { background: #9a7e57; }
+        #avatar-file-input { display: none; }
+        .profile-hero-info h2 { font-family: var(--serif); font-size: 22px; color: #222; margin-bottom: 4px; }
+        .profile-hero-email { font-size: 13px; color: #888; font-family: var(--sans); }
+        .profile-joined { font-size: 12px; color: #bbb; font-family: var(--sans); margin-top: 6px; }
+
+        /* Cards */
+        .profile-card { background: #fff; border: 1px solid #ece8e0; border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+        .profile-card-title { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #B89B71; margin-bottom: 20px; font-family: var(--sans); }
+
+        /* Form fields */
+        .profile-field { margin-bottom: 18px; }
+        .profile-label { display: block; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #999; margin-bottom: 7px; font-family: var(--sans); }
+        .profile-input { width: 100%; padding: 12px 16px; border: 1px solid #e0d9cf; border-radius: 12px; font-size: 15px; font-family: var(--sans); color: #333; background: #faf8f4; transition: all .2s; box-sizing: border-box; }
+        .profile-input:focus { outline: none; border-color: #B89B71; background: #fff; box-shadow: 0 0 0 3px rgba(184,155,113,.1); }
+        .profile-input:disabled { opacity: .6; cursor: not-allowed; background: #f3f0ea; }
+        .profile-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        /* Save button */
+        .btn-save { padding: 12px 28px; background: #B89B71; color: #fff; border: none; border-radius: 40px; font-size: 14px; font-family: var(--sans); font-weight: 500; cursor: pointer; transition: background .2s; }
+        .btn-save:hover { background: #9a7e57; }
+        .btn-save:disabled { opacity: .6; cursor: not-allowed; }
+
+        /* Danger zone */
+        .danger-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f3f0ea; flex-wrap: wrap; gap: 10px; }
+        .danger-item:last-child { border-bottom: none; }
+        .danger-item-label { font-size: 14px; color: #333; font-family: var(--sans); }
+        .danger-item-sub { font-size: 12px; color: #aaa; font-family: var(--sans); margin-top: 2px; }
+        .btn-danger { padding: 8px 18px; border-radius: 40px; background: #fff; color: #c0392b; border: 1px solid #f5c6c3; font-size: 13px; cursor: pointer; font-family: var(--sans); transition: all .2s; }
+        .btn-danger:hover { background: #fce8e8; }
+        .btn-outline { padding: 8px 18px; border-radius: 40px; background: #fff; color: #B89B71; border: 1px solid #e0d9cf; font-size: 13px; cursor: pointer; font-family: var(--sans); transition: all .2s; }
+        .btn-outline:hover { background: #fdf8f2; }
+
+        /* Password fields */
+        .pw-field-wrap { position: relative; }
+        .pw-field-wrap .profile-input { padding-right: 44px; }
+        .pw-show-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #aaa; display: flex; align-items: center; }
+        .pw-show-btn:hover { color: #555; }
+
+        /* Status messages */
+        .form-success { background: #e6f9f0; border: 1px solid #b7dfcc; color: #2d6a4f; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-family: var(--sans); margin-top: 14px; display: none; }
+        .form-error { background: #fdf0ef; border: 1px solid #f5c6c3; color: #c0392b; border-radius: 10px; padding: 10px 14px; font-size: 13px; font-family: var(--sans); margin-top: 14px; display: none; }
+
+        /* Loading / auth guard */
+        .profile-loading { text-align: center; padding: 60px 0; color: #aaa; font-family: var(--sans); font-size: 14px; }
+        .auth-guard { text-align: center; padding: 80px 24px; }
+        .auth-guard h3 { font-family: var(--serif); font-size: 28px; color: #333; margin-bottom: 12px; }
+        .auth-guard p { font-size: 14px; color: #888; font-family: var(--sans); margin-bottom: 28px; }
+        .btn-login-now { display: inline-block; padding: 13px 32px; background: #B89B71; color: #fff; border-radius: 40px; font-family: var(--sans); font-size: 14px; cursor: pointer; border: none; }
+
+        @media (max-width: 560px) { .profile-field-row { grid-template-columns: 1fr; } .profile-hero { flex-direction: column; text-align: center; } }
+    </style>
+</head>
+<body>
+<nav id="navbar"></nav>
+
+<div class="account-page">
+    <div class="account-container">
+        <h1 class="account-heading">Profile <em>Settings</em></h1>
+        <p class="account-sub">Manage your personal information and account preferences</p>
+
+        <div id="profile-root">
+            <div class="profile-loading">Loading your profile…</div>
+        </div>
+    </div>
+</div>
+
+<footer id="footer"></footer>
+
+<script src="scripts/api.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/cart.js"></script>
+<script src="scripts/main.js"></script>
+<script>
+const API = 'http://localhost:3000/api/v1';
+function authHeaders(json = true) {
+    const h = { Authorization: `Bearer ${window.KalyraToken?.getAccess()}` };
+    if (json) h['Content-Type'] = 'application/json';
+    return h;
+}
+
+let currentUser = null;
+
+async function loadProfile() {
+    const root = document.getElementById('profile-root');
+    try {
+        const res = await fetch(`${API}/user/profile`, { headers: authHeaders() }).then(r => r.json());
+        currentUser = res.data;
+        renderProfile(currentUser);
+    } catch (err) {
+        root.innerHTML = `<div class="profile-loading" style="color:#c0392b;">Could not load profile: ${err.message}</div>`;
+    }
+}
+
+function getInitials(name, email) {
+    if (name) return name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+    return (email || '?')[0].toUpperCase();
+}
+
+function renderProfile(u) {
+    const root = document.getElementById('profile-root');
+    const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { month:'long', year:'numeric' }) : '';
+    const avatarHtml = u.profile_photo
+        ? `<img src="http://localhost:3000${u.profile_photo}" alt="${u.name}">`
+        : getInitials(u.name, u.email);
+
+    root.innerHTML = `
+        <!-- Profile hero -->
+        <div class="profile-hero">
+            <div class="profile-avatar-wrap">
+                <div class="profile-avatar" id="profile-avatar-display">${avatarHtml}</div>
+                <button class="profile-avatar-edit" id="avatar-edit-btn" title="Change photo">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp">
+            </div>
+            <div class="profile-hero-info">
+                <h2>${u.name || 'My Account'}</h2>
+                <div class="profile-hero-email">${u.email}</div>
+                ${joined ? `<div class="profile-joined">Member since ${joined}</div>` : ''}
+            </div>
+        </div>
+
+        <!-- Personal info -->
+        <div class="profile-card">
+            <div class="profile-card-title">Personal Information</div>
+            <div class="profile-field-row">
+                <div class="profile-field">
+                    <label class="profile-label" for="pf-name">Full Name</label>
+                    <input class="profile-input" id="pf-name" type="text" value="${u.name || ''}" placeholder="Your name" maxlength="100">
+                </div>
+                <div class="profile-field">
+                    <label class="profile-label" for="pf-phone">Phone Number</label>
+                    <input class="profile-input" id="pf-phone" type="tel" value="${u.phone || ''}" placeholder="+91 XXXXXXXXXX">
+                </div>
+            </div>
+            <div class="profile-field">
+                <label class="profile-label" for="pf-email">Email Address</label>
+                <input class="profile-input" id="pf-email" type="email" value="${u.email || ''}" placeholder="you@example.com">
+            </div>
+            <button class="btn-save" id="btn-save-profile">Save Changes</button>
+            <div class="form-success" id="profile-success">✓ Profile updated successfully!</div>
+            <div class="form-error" id="profile-error"></div>
+        </div>
+
+        <!-- Change password -->
+        <div class="profile-card">
+            <div class="profile-card-title">Change Password</div>
+            <div class="profile-field">
+                <label class="profile-label" for="pf-pw-current">Current Password</label>
+                <div class="pw-field-wrap">
+                    <input class="profile-input" id="pf-pw-current" type="password" placeholder="Enter current password">
+                    <button class="pw-show-btn" data-target="pf-pw-current" type="button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="profile-field-row">
+                <div class="profile-field">
+                    <label class="profile-label" for="pf-pw-new">New Password</label>
+                    <div class="pw-field-wrap">
+                        <input class="profile-input" id="pf-pw-new" type="password" placeholder="Min. 8 characters">
+                        <button class="pw-show-btn" data-target="pf-pw-new" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="profile-field">
+                    <label class="profile-label" for="pf-pw-confirm">Confirm New Password</label>
+                    <div class="pw-field-wrap">
+                        <input class="profile-input" id="pf-pw-confirm" type="password" placeholder="Re-enter new password">
+                        <button class="pw-show-btn" data-target="pf-pw-confirm" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-save" id="btn-change-password">Update Password</button>
+            <div class="form-success" id="pw-success">✓ Password updated! Please sign in again.</div>
+            <div class="form-error" id="pw-error"></div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="profile-card">
+            <div class="profile-card-title" style="color:#c0392b;">Account Actions</div>
+            <div class="danger-item">
+                <div>
+                    <div class="danger-item-label">Sign Out of All Devices</div>
+                    <div class="danger-item-sub">Revokes all active sessions</div>
+                </div>
+                <button class="btn-outline" id="btn-signout-all">Sign Out Everywhere</button>
+            </div>
+            <div class="danger-item">
+                <div>
+                    <div class="danger-item-label">Sign Out</div>
+                    <div class="danger-item-sub">Sign out from this device</div>
+                </div>
+                <button class="btn-danger" id="btn-signout">Sign Out</button>
+            </div>
+        </div>`;
+
+    wireProfileEvents();
+}
+
+function wireProfileEvents() {
+    // Password show toggles (delegated)
+    document.querySelectorAll('.pw-show-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inp = document.getElementById(btn.dataset.target);
+            if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+        });
+    });
+
+    // Avatar photo upload
+    document.getElementById('avatar-edit-btn')?.addEventListener('click', () => {
+        document.getElementById('avatar-file-input')?.click();
+    });
+    document.getElementById('avatar-file-input')?.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('photo', file);
+        try {
+            const res = await fetch(`${API}/user/profile/photo`, {
+                method: 'POST', headers: authHeaders(false), body: fd
+            }).then(r => r.json());
+            const photoUrl = 'http://localhost:3000' + res.data.profile_photo;
+            const av = document.getElementById('profile-avatar-display');
+            if (av) av.innerHTML = `<img src="${photoUrl}" alt="Profile photo">`;
+            // Update stored user
+            const u = window.KalyraToken?.getUser();
+            if (u) { u.profile_photo = res.data.profile_photo; window.KalyraToken?.setUser(u); }
+            window.updateNavbarUserState?.();
+            window.showToast?.('Profile photo updated!', 'success');
+        } catch { window.showToast?.('Could not upload photo.', 'error'); }
+    });
+
+    // Save profile
+    document.getElementById('btn-save-profile')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btn-save-profile');
+        const succ = document.getElementById('profile-success');
+        const err = document.getElementById('profile-error');
+        succ.style.display = 'none'; err.style.display = 'none';
+
+        const body = {
+            name:  document.getElementById('pf-name')?.value.trim() || undefined,
+            email: document.getElementById('pf-email')?.value.trim() || undefined,
+            phone: document.getElementById('pf-phone')?.value.trim() || undefined,
+        };
+        // Remove unchanged values
+        if (body.name  === currentUser.name)  delete body.name;
+        if (body.email === currentUser.email) delete body.email;
+        if (body.phone === (currentUser.phone || '')) delete body.phone;
+
+        if (!Object.keys(body).length) { window.showToast?.('No changes to save.', 'info'); return; }
+
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+            const res = await fetch(`${API}/user/profile`, {
+                method: 'PUT', headers: authHeaders(), body: JSON.stringify(body)
+            }).then(r => r.json());
+            if (!res.success) throw new Error(res.message);
+            currentUser = res.data;
+            // Update stored session user
+            const u = window.KalyraToken?.getUser();
+            if (u) { Object.assign(u, res.data); window.KalyraToken?.setUser(u); }
+            window.updateNavbarUserState?.();
+            succ.style.display = 'block';
+            window.showToast?.('Profile updated!', 'success');
+        } catch (e) {
+            err.textContent = e.message || 'Could not update profile.';
+            err.style.display = 'block';
+        } finally {
+            btn.disabled = false; btn.textContent = 'Save Changes';
+        }
+    });
+
+    // Change password (calls forgot-password flow locally — direct SQLite has no change-pw endpoint exposed on user route directly)
+    // We'll call reset-password after getting a token from forgot-password in local mode
+    document.getElementById('btn-change-password')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btn-change-password');
+        const succ = document.getElementById('pw-success');
+        const errEl = document.getElementById('pw-error');
+        succ.style.display = 'none'; errEl.style.display = 'none';
+
+        const newPw  = document.getElementById('pf-pw-new')?.value;
+        const confPw = document.getElementById('pf-pw-confirm')?.value;
+
+        if (!newPw) { errEl.textContent = 'Enter a new password.'; errEl.style.display = 'block'; return; }
+        if (newPw.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+        if (!/[A-Z]/.test(newPw)) { errEl.textContent = 'Password must have at least one uppercase letter.'; errEl.style.display = 'block'; return; }
+        if (!/[0-9]/.test(newPw)) { errEl.textContent = 'Password must have at least one number.'; errEl.style.display = 'block'; return; }
+        if (newPw !== confPw) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+
+        btn.disabled = true; btn.textContent = 'Updating…';
+        try {
+            // Step 1: request reset token (local dev mode returns token in response)
+            const fpRes = await fetch(`${API}/auth/forgot-password`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentUser.email })
+            }).then(r => r.json());
+
+            const token = fpRes.data?.token || fpRes.data?.resetToken;
+            if (!token) throw new Error('Password reset not available in local mode without email.');
+
+            // Step 2: reset with token
+            const rpRes = await fetch(`${API}/auth/reset-password`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, password: newPw })
+            }).then(r => r.json());
+
+            if (!rpRes.success) throw new Error(rpRes.message);
+            succ.style.display = 'block';
+            ['pf-pw-current','pf-pw-new','pf-pw-confirm'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            setTimeout(() => window.KalyraAuth?.logout(), 2000);
+        } catch (e) {
+            errEl.textContent = e.message || 'Could not change password.';
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled = false; btn.textContent = 'Update Password';
+        }
+    });
+
+    // Sign out
+    document.getElementById('btn-signout')?.addEventListener('click', () => {
+        window.KalyraAuth?.logout().then(() => window.location.href = 'index.html');
+    });
+
+    // Sign out all devices
+    document.getElementById('btn-signout-all')?.addEventListener('click', async () => {
+        try {
+            const sessions = await fetch(`${API}/user/sessions`, { headers: authHeaders() }).then(r => r.json());
+            if (sessions.data?.length) {
+                await Promise.all(sessions.data.map(s =>
+                    fetch(`${API}/user/sessions/${s.id}`, { method: 'DELETE', headers: authHeaders() })
+                ));
+            }
+            window.showToast?.('Signed out of all devices.', 'success');
+            setTimeout(() => { window.KalyraToken?.clear(); window.location.href = 'index.html'; }, 1500);
+        } catch { window.showToast?.('Could not sign out of all devices.', 'error'); }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (!window.KalyraToken?.isLoggedIn()) {
+            document.getElementById('profile-root').innerHTML = `
+                <div class="auth-guard">
+                    <h3>Sign in to manage your profile</h3>
+                    <p>You need to be logged in to access profile settings.</p>
+                    <button class="btn-login-now" onclick="document.querySelector('a[href=\\'#login\\']')?.click()">Sign In</button>
+                </div>`;
+        } else {
+            loadProfile();
+        }
+    }, 400);
+});
+</script>
+</body>
+</html>
