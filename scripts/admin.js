@@ -9,7 +9,7 @@ const state = {
     products: { page: 1 },
     orders:   { page: 1 },
     users:    { page: 1 },
-    activeView: 'overview',   // track the currently visible section
+    activeView: localStorage.getItem('kalyra_admin_view') || 'overview',   // track the currently visible section
 };
 
 // In-memory product cache — avoids re-fetching for the edit modal
@@ -69,7 +69,9 @@ loginForm.addEventListener('submit', async (e) => {
 
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('kalyra_admin_token');
+    localStorage.removeItem('kalyra_admin_view');
     adminToken = null;
+    state.activeView = 'overview';
     showLogin();
 });
 
@@ -111,6 +113,7 @@ function switchView(viewName) {
 
     // Only reset pagination when actually switching tabs (not during in-place refreshes)
     state.activeView = viewName;
+    localStorage.setItem('kalyra_admin_view', viewName);
 
     if (viewName === 'overview')  { state.products.page = 1; state.orders.page = 1; state.users.page = 1; fetchOverview(); }
     if (viewName === 'products')  fetchProducts();
