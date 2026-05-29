@@ -1265,7 +1265,7 @@ body {
 }
 
 .banner-preview-area:hover {
-    border-color: var(--admin-accent);
+    border-color: var(--admin-primary);
 }
 
 .banner-preview-area img {
@@ -1297,17 +1297,17 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--admin-accent);
+    background: var(--admin-primary);
     color: #fff;
     padding: 0.5rem 1rem;
     border-radius: var(--radius-sm);
     font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: background-color 0.2s;
 }
 
-.banner-upload-label:hover { opacity: 0.88; }
+.banner-upload-label:hover { background-color: var(--admin-primary-hover); }
 
 .banner-status {
     font-size: 0.8rem;
