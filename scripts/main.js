@@ -1519,11 +1519,32 @@ async function applyCustomBanner() {
         const res  = await fetch(`${host}/api/v1/admin/settings`);
         if (!res.ok) return;
         const data = await res.json();
-        const url  = data?.data?.bannerImage;
-        if (url) {
-            heroImg.src = `${host}${url}`;
+        const settings = data?.data || {};
+
+        const defaultSrc = '/uploads/products/diy/pearl-hat-portrait.jpg';
+
+        const updateImage = () => {
+            const isMobile = window.innerWidth <= 640;
+            let src = null;
+            if (isMobile) {
+                src = settings.mobileBannerImage || settings.desktopBannerImage;
+            } else {
+                src = settings.desktopBannerImage;
+            }
+
+            if (src) {
+                heroImg.src = `${host}${src}`;
+            } else {
+                heroImg.src = `${host}${defaultSrc}`;
+            }
             heroImg.alt = 'Kalyra Banner';
-        }
+        };
+
+        // Initial apply
+        updateImage();
+
+        // Listen to window resize to swap banner dynamically if viewport crosses the breakpoint
+        window.addEventListener('resize', updateImage);
     } catch (_) {
         // Silently fail — default image remains
     }

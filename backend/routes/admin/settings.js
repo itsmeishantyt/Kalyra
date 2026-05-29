@@ -13,7 +13,22 @@ const SETTINGS_FILE  = path.join(__dirname, '..', '..', 'db', 'settings.json');
 const BANNER_DIR     = path.join(__dirname, '..', '..', 'uploads', 'banner');
 
 if (!fs.existsSync(BANNER_DIR)) fs.mkdirSync(BANNER_DIR, { recursive: true });
-if (!fs.existsSync(SETTINGS_FILE)) fs.writeFileSync(SETTINGS_FILE, JSON.stringify({ bannerImage: null }));
+
+// Ensure settings file exists with correct structure
+if (!fs.existsSync(SETTINGS_FILE)) {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({ desktopBannerImage: null, mobileBannerImage: null }, null, 2));
+} else {
+  try {
+    const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    if (data.bannerImage !== undefined) {
+      // Migrate legacy single banner setting
+      data.desktopBannerImage = data.bannerImage;
+      data.mobileBannerImage = null;
+      delete data.bannerImage;
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2));
+    }
+  } catch (_) {}
+}
 
 // ── Helpers ──────────────────────────────────────────────────
 function readSettings()          { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')); }
@@ -23,8 +38,9 @@ function writeSettings(data)     { fs.writeFileSync(SETTINGS_FILE, JSON.stringif
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, BANNER_DIR),
   filename:    (req, file, cb) => {
+    const type = req.params.type === 'mobile' ? 'mobile' : 'desktop';
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `banner${ext}`);   // always overwrite with "banner.<ext>"
+    cb(null, `banner_${type}_${Date.now()}${ext}`);
   },
 });
 const upload = multer({
@@ -37,45 +53,69 @@ const upload = multer({
 });
 
 // ── GET /api/v1/admin/settings ───────────────────────────────
-router.get('/', requireAdmin(), (req, res) => {
+router.get('/', (req, res) => {
   const settings = readSettings();
   res.json(R.ok(settings));
 });
 
-// ── POST /api/v1/admin/settings/banner ──────────────────────
-router.post('/banner', requireAdmin(), upload.single('banner'), (req, res) => {
+// ── POST /api/v1/admin/settings/banner/:type ────────────────
+router.post('/banner/:type', requireAdmin(), (req, res, next) => {
+  const type = req.params.type;
+  if (type !== 'desktop' && type !== 'mobile') {
+    return res.status(400).json(R.fail('Invalid banner type. Must be "desktop" or "mobile"'));
+  }
+  next();
+}, upload.single('banner'), (req, res) => {
   if (!req.file) return res.status(400).json(R.fail('No image file provided'));
 
-  // Delete old banner files with different extensions
+  const type = req.params.type;
+  const newFilename = req.file.filename;
+
+  // Delete old banner files of the same type
   try {
     fs.readdirSync(BANNER_DIR).forEach(f => {
-      if (f.startsWith('banner') && f !== req.file.filename) {
+      if (f.startsWith(`banner_${type}_`) && f !== newFilename) {
         fs.unlinkSync(path.join(BANNER_DIR, f));
       }
     });
   } catch (_) {}
 
-  const imageUrl = `/uploads/banner/${req.file.filename}`;
+  const imageUrl = `/uploads/banner/${newFilename}`;
   const settings = readSettings();
-  settings.bannerImage = imageUrl;
+  if (type === 'mobile') {
+    settings.mobileBannerImage = imageUrl;
+  } else {
+    settings.desktopBannerImage = imageUrl;
+  }
   writeSettings(settings);
 
-  res.json(R.ok({ bannerImage: imageUrl }, 'Banner image updated'));
+  res.json(R.ok({ bannerImage: imageUrl }, `Hero ${type} banner image updated`));
 });
 
-// ── DELETE /api/v1/admin/settings/banner ────────────────────
-router.delete('/banner', requireAdmin(), (req, res) => {
+// ── DELETE /api/v1/admin/settings/banner/:type ──────────────
+router.delete('/banner/:type', requireAdmin(), (req, res) => {
+  const type = req.params.type;
+  if (type !== 'desktop' && type !== 'mobile') {
+    return res.status(400).json(R.fail('Invalid banner type. Must be "desktop" or "mobile"'));
+  }
+
   try {
     fs.readdirSync(BANNER_DIR).forEach(f => {
-      if (f.startsWith('banner')) fs.unlinkSync(path.join(BANNER_DIR, f));
+      if (f.startsWith(`banner_${type}_`)) {
+        fs.unlinkSync(path.join(BANNER_DIR, f));
+      }
     });
   } catch (_) {}
 
   const settings = readSettings();
-  settings.bannerImage = null;
+  if (type === 'mobile') {
+    settings.mobileBannerImage = null;
+  } else {
+    settings.desktopBannerImage = null;
+  }
   writeSettings(settings);
 
-  res.json(R.ok(null, 'Banner image removed'));
+  res.json(R.ok(null, `Hero ${type} banner image removed`));
 });
 
 module.exports = router;

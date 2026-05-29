@@ -608,80 +608,123 @@ async function reactivateUser(id) {
 // ── Banner Customiser ──────────────────────────────────────────────
 async function loadBannerPreview() {
     const data = await apiGet('/settings');
-    const img  = document.getElementById('banner-current-img');
-    const ph   = document.getElementById('banner-placeholder');
-    const rmBtn = document.getElementById('banner-remove-btn');
-    if (!img || !ph) return;
+    const settings = data?.data || {};
 
-    const url = data?.data?.bannerImage;
-    if (url) {
-        img.src = `http://localhost:3000${url}`;
-        img.style.display = 'block';
-        ph.style.display  = 'none';
-        rmBtn.style.display = 'inline-flex';
-    } else {
-        img.style.display = 'none';
-        ph.style.display  = 'flex';
-        rmBtn.style.display = 'none';
+    // Desktop elements
+    const desktopImg   = document.getElementById('banner-img-desktop');
+    const desktopPh    = document.getElementById('banner-placeholder-desktop');
+    const desktopRmBtn = document.getElementById('banner-remove-desktop');
+
+    // Mobile elements
+    const mobileImg    = document.getElementById('banner-img-mobile');
+    const mobilePh     = document.getElementById('banner-placeholder-mobile');
+    const mobileRmBtn  = document.getElementById('banner-remove-mobile');
+
+    const host = 'http://localhost:3000';
+
+    if (desktopImg && desktopPh && desktopRmBtn) {
+        if (settings.desktopBannerImage) {
+            desktopImg.src = `${host}${settings.desktopBannerImage}?t=${Date.now()}`;
+            desktopImg.style.display = 'block';
+            desktopPh.style.display  = 'none';
+            desktopRmBtn.style.display = 'inline-flex';
+        } else {
+            desktopImg.style.display = 'none';
+            desktopPh.style.display  = 'flex';
+            desktopRmBtn.style.display = 'none';
+        }
+    }
+
+    if (mobileImg && mobilePh && mobileRmBtn) {
+        if (settings.mobileBannerImage) {
+            mobileImg.src = `${host}${settings.mobileBannerImage}?t=${Date.now()}`;
+            mobileImg.style.display = 'block';
+            mobilePh.style.display  = 'none';
+            mobileRmBtn.style.display = 'inline-flex';
+        } else {
+            mobileImg.style.display = 'none';
+            mobilePh.style.display  = 'flex';
+            mobileRmBtn.style.display = 'none';
+        }
     }
 }
 
-async function uploadBannerImage(input) {
+async function uploadBannerImage(input, type = 'desktop') {
     const file = input.files[0];
     if (!file) return;
-    const statusEl = document.getElementById('banner-status-msg');
-    statusEl.className = 'banner-status';
-    statusEl.textContent = 'Uploading…';
+
+    const statusEl = document.getElementById(`banner-status-${type}`);
+    if (statusEl) {
+        statusEl.className = 'banner-status';
+        statusEl.textContent = 'Uploading…';
+    }
 
     const formData = new FormData();
     formData.append('banner', file);
 
     try {
-        const res = await fetch(`${API}/settings/banner`, {
+        const res = await fetch(`${API}/settings/banner/${type}`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${adminToken}` },
             body: formData,
         });
         const data = await res.json();
         if (data?.success) {
-            statusEl.className = 'banner-status success';
-            statusEl.textContent = 'Banner updated!';
+            if (statusEl) {
+                statusEl.className = 'banner-status success';
+                statusEl.textContent = 'Banner updated!';
+            }
             await loadBannerPreview();
-            // Refresh the live hero image if the storefront is open in another tab
-            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            if (statusEl) {
+                setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            }
         } else {
-            statusEl.className = 'banner-status error';
-            statusEl.textContent = data?.message || 'Upload failed';
+            if (statusEl) {
+                statusEl.className = 'banner-status error';
+                statusEl.textContent = data?.message || 'Upload failed';
+            }
         }
     } catch (err) {
-        statusEl.className = 'banner-status error';
-        statusEl.textContent = 'Upload failed';
+        if (statusEl) {
+            statusEl.className = 'banner-status error';
+            statusEl.textContent = 'Upload failed';
+        }
     }
     input.value = '';
 }
 
-async function removeBannerImage() {
-    const statusEl = document.getElementById('banner-status-msg');
-    statusEl.className = 'banner-status';
-    statusEl.textContent = 'Removing…';
+async function removeBannerImage(type = 'desktop') {
+    const statusEl = document.getElementById(`banner-status-${type}`);
+    if (statusEl) {
+        statusEl.className = 'banner-status';
+        statusEl.textContent = 'Removing…';
+    }
 
     try {
-        const res = await fetch(`${API}/settings/banner`, {
+        const res = await fetch(`${API}/settings/banner/${type}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${adminToken}` },
         });
         const data = await res.json();
         if (data?.success) {
-            statusEl.className = 'banner-status success';
-            statusEl.textContent = 'Banner removed — default image restored';
+            if (statusEl) {
+                statusEl.className = 'banner-status success';
+                statusEl.textContent = 'Custom banner removed';
+            }
             await loadBannerPreview();
-            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            if (statusEl) {
+                setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            }
         } else {
-            statusEl.className = 'banner-status error';
-            statusEl.textContent = data?.message || 'Removal failed';
+            if (statusEl) {
+                statusEl.className = 'banner-status error';
+                statusEl.textContent = data?.message || 'Removal failed';
+            }
         }
     } catch (err) {
-        statusEl.className = 'banner-status error';
-        statusEl.textContent = 'Removal failed';
+        if (statusEl) {
+            statusEl.className = 'banner-status error';
+            statusEl.textContent = 'Removal failed';
+        }
     }
 }
