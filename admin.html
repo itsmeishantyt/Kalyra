@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,33 +6,98 @@
     <title>Kalyra Admin Panel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/admin.css">
     <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
 </head>
 <body>
     <!-- Login View -->
     <div id="admin-login-view" class="admin-login-wrapper">
-        <div class="login-card glass-panel">
-            <div class="login-header">
-                <h2>KALYRA</h2>
-                <p>Admin Portal</p>
+
+        <!-- Left Brand Panel -->
+        <div class="login-brand-panel">
+            <!-- Decorative background elements -->
+            <div class="login-brand-bg">
+                <svg class="brand-curve" viewBox="0 0 600 800" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                    <path d="M0 0 L600 0 L600 800 L0 800 Z" fill="url(#brandGrad)" fill-opacity="0.12"/>
+                    <path d="M-50 300 C150 250, 300 380, 500 320 C650 280, 700 180, 750 220" stroke="url(#brandGrad)" stroke-width="1" fill="none" opacity="0.25"/>
+                    <path d="M-50 400 C100 370, 280 450, 450 400 C600 360, 680 290, 750 320" stroke="url(#brandGrad)" stroke-width="0.6" fill="none" opacity="0.15"/>
+                    <defs>
+                        <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#d4a853" stop-opacity="0"/>
+                            <stop offset="40%" stop-color="#d4a853" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#b8892e" stop-opacity="0.2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <!-- Floating leaf silhouettes -->
+                <svg class="brand-leaf brand-leaf-1" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 10 C70 30, 85 60, 80 90 C75 110, 60 115, 50 110 C40 115, 25 110, 20 90 C15 60, 30 30, 50 10Z" fill="#d4a853" fill-opacity="0.18" stroke="#d4a853" stroke-width="0.8" stroke-opacity="0.35"/>
+                    <path d="M50 10 L50 55" stroke="#d4a853" stroke-width="0.6" stroke-opacity="0.3"/>
+                    <path d="M50 30 C40 25, 30 35, 28 48" stroke="#d4a853" stroke-width="0.5" stroke-opacity="0.2" fill="none"/>
+                    <path d="M50 30 C60 25, 70 35, 72 48" stroke="#d4a853" stroke-width="0.5" stroke-opacity="0.2" fill="none"/>
+                </svg>
+                <svg class="brand-leaf brand-leaf-2" viewBox="0 0 80 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M40 8 C58 25, 70 50, 65 75 C60 92, 48 96, 40 92 C32 96, 20 92, 15 75 C10 50, 22 25, 40 8Z" fill="#c4922a" fill-opacity="0.12" stroke="#c4922a" stroke-width="0.8" stroke-opacity="0.25"/>
+                    <path d="M40 8 L40 44" stroke="#c4922a" stroke-width="0.5" stroke-opacity="0.2"/>
+                </svg>
+                <svg class="brand-leaf brand-leaf-3" viewBox="0 0 70 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M35 6 C52 20, 62 42, 58 65 C54 80, 43 84, 35 80 C27 84, 16 80, 12 65 C8 42, 18 20, 35 6Z" fill="#d4a853" fill-opacity="0.1" stroke="#d4a853" stroke-width="0.6" stroke-opacity="0.2"/>
+                </svg>
             </div>
-            <form id="admin-login-form">
-                <div class="form-group">
-                    <label for="admin-email">Email Address</label>
-                    <input type="email" id="admin-email" required placeholder="admin@kalyra.com">
+
+            <!-- Brand content -->
+            <div class="login-brand-content">
+                <div class="brand-ornament">
+                    <span></span><span class="ornament-diamond">◆</span><span></span>
                 </div>
-                <div class="form-group">
-                    <label for="admin-password">Password</label>
-                    <input type="password" id="admin-password" required placeholder="••••••••">
-                </div>
-                <div class="form-error" id="login-error"></div>
-                <button type="submit" class="btn-primary" id="login-btn">
-                    <span>Sign In</span>
-                </button>
-            </form>
+                <h1 class="brand-wordmark">KALYRA</h1>
+                <p class="brand-tagline">Artfully Crafted,<br><em>Designed</em> To Inspire</p>
+                <div class="brand-divider"></div>
+                <p class="brand-caption">Admin Command Centre</p>
+            </div>
+
+            <!-- Bottom quote -->
+            <p class="brand-quote">"Where tradition meets modern elegance."</p>
         </div>
+
+        <!-- Right Form Panel -->
+        <div class="login-form-panel">
+            <div class="login-form-inner">
+                <div class="login-form-header">
+                    <div class="login-badge">Admin Access</div>
+                    <h2>Welcome back</h2>
+                    <p>Sign in to manage your Kalyra store</p>
+                </div>
+
+                <form id="admin-login-form">
+                    <div class="form-group">
+                        <label for="admin-email">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            Email Address
+                        </label>
+                        <input type="email" id="admin-email" required placeholder="admin@kalyra.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            Password
+                        </label>
+                        <div class="input-wrap">
+                            <input type="password" id="admin-password" required placeholder="••••••••" autocomplete="current-password">
+                        </div>
+                    </div>
+                    <div class="form-error" id="login-error"></div>
+                    <button type="submit" class="btn-primary" id="login-btn">
+                        <span>Sign In to Dashboard</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </form>
+
+                <p class="login-footer-note">Restricted access — authorised personnel only.</p>
+            </div>
+        </div>
+
     </div>
 
     <!-- Dashboard View -->
@@ -40,23 +105,24 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>KALYRA <span>Admin</span></h2>
+                <div class="sidebar-logo">KALYRA</div>
+                <div class="sidebar-sub">Admin Panel</div>
             </div>
             <nav class="sidebar-nav">
                 <button class="nav-item active" data-view="overview">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
                     Overview
                 </button>
                 <button class="nav-item" data-view="products">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1" fill="currentColor"/></svg>
                     Products
                 </button>
                 <button class="nav-item" data-view="orders">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                     Orders
                 </button>
                 <button class="nav-item" data-view="users">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     Users
                 </button>
             </nav>
@@ -68,8 +134,8 @@
                         <span id="admin-role">Super Admin</span>
                     </div>
                 </div>
-                <button id="logout-btn" class="logout-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <button id="logout-btn" class="logout-btn" title="Sign out">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </button>
             </div>
         </aside>
@@ -77,131 +143,258 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <h1 id="page-title">Overview</h1>
+                <div class="header-left">
+                    <h1 id="page-title">Overview</h1>
+                    <span id="page-subtitle" class="page-subtitle">Your store at a glance</span>
+                </div>
                 <div class="header-actions">
-                    <button class="btn-icon" aria-label="Notifications">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    </button>
+                    <a href="index.html" class="header-store-link" target="_blank">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        View Store
+                    </a>
                 </div>
             </header>
 
+            <!-- ── OVERVIEW ── -->
             <div class="content-body" id="content-overview">
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <h3>Total Revenue</h3>
-                        <div class="value" id="metric-revenue">—</div>
-                        <div class="trend" id="trend-revenue"></div>
+                        <div class="metric-icon metric-icon-gold">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-label">Total Revenue</div>
+                            <div class="metric-value" id="metric-revenue">—</div>
+                            <div class="metric-trend" id="trend-revenue"></div>
+                        </div>
                     </div>
                     <div class="metric-card">
-                        <h3>Total Orders</h3>
-                        <div class="value" id="metric-orders">—</div>
-                        <div class="trend" id="trend-orders"></div>
+                        <div class="metric-icon metric-icon-blue">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-label">Total Orders</div>
+                            <div class="metric-value" id="metric-orders">—</div>
+                            <div class="metric-trend" id="trend-orders"></div>
+                        </div>
                     </div>
                     <div class="metric-card">
-                        <h3>Active Products</h3>
-                        <div class="value" id="metric-products">—</div>
-                        <div class="trend" id="trend-products"></div>
+                        <div class="metric-icon metric-icon-green">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-label">Active Products</div>
+                            <div class="metric-value" id="metric-products">—</div>
+                            <div class="metric-trend" id="trend-products"></div>
+                        </div>
                     </div>
                     <div class="metric-card">
-                        <h3>Total Users</h3>
-                        <div class="value" id="metric-users">—</div>
-                        <div class="trend" id="trend-users"></div>
+                        <div class="metric-icon metric-icon-purple">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <div class="metric-data">
+                            <div class="metric-label">Total Users</div>
+                            <div class="metric-value" id="metric-users">—</div>
+                            <div class="metric-trend" id="trend-users"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="dashboard-tables">
-                    <div class="table-container recent-orders">
+                <div class="overview-grid">
+                    <!-- Recent Orders -->
+                    <div class="table-container">
                         <div class="table-header">
-                            <h2>Recent Orders</h2>
-                            <button class="btn-text" onclick="switchView('orders')">View All</button>
+                            <div>
+                                <h2>Recent Orders</h2>
+                                <p class="table-sub">Last 5 orders placed</p>
+                            </div>
+                            <button class="btn-text" onclick="switchView('orders')">View All →</button>
                         </div>
                         <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <thead><tr>
+                                <th>Order</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th>
+                            </tr></thead>
                             <tbody id="recent-orders-body">
-                                <tr><td colspan="5" class="loading-state">Loading...</td></tr>
+                                <tr><td colspan="5" class="loading-state">Loading…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="table-container">
+                        <div class="table-header">
+                            <div>
+                                <h2>Top Products</h2>
+                                <p class="table-sub">Best sellers this month</p>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Product</th><th>Units Sold</th><th>Revenue</th>
+                            </tr></thead>
+                            <tbody id="top-products-body">
+                                <tr><td colspan="3" class="loading-state">Loading…</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
+            <!-- ── PRODUCTS ── -->
             <div class="content-body hidden" id="content-products">
-                <div class="table-header">
-                    <h2>Manage Products</h2>
-                    <button class="btn-primary btn-sm">+ Add Product</button>
+                <div class="section-toolbar">
+                    <div class="toolbar-search">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="product-search" placeholder="Search products, SKU…" oninput="debounce(fetchProducts, 350)()">
+                    </div>
+                    <div class="toolbar-filters">
+                        <select id="product-status-filter" onchange="fetchProducts()">
+                            <option value="">All Status</option>
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                        <select id="product-stock-filter" onchange="fetchProducts()">
+                            <option value="">All Stock</option>
+                            <option value="10">Low Stock (≤10)</option>
+                            <option value="0">Out of Stock</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary btn-sm" onclick="openAddProductModal()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Add Product
+                    </button>
                 </div>
                 <div class="table-container">
                     <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr>
+                            <th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+                        </tr></thead>
                         <tbody id="products-table-body">
-                            <tr><td colspan="6" class="loading-state">Loading...</td></tr>
+                            <tr><td colspan="6" class="loading-state">Loading…</td></tr>
                         </tbody>
                     </table>
                 </div>
+                <div class="pagination-bar" id="products-pagination"></div>
             </div>
 
+            <!-- ── ORDERS ── -->
             <div class="content-body hidden" id="content-orders">
-                <div class="table-header">
-                    <h2>Manage Orders</h2>
+                <div class="section-toolbar">
+                    <div class="toolbar-search">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="order-search" placeholder="Search by order ref or customer…" oninput="debounce(fetchOrders, 350)()">
+                    </div>
+                    <div class="toolbar-filters">
+                        <select id="order-status-filter" onchange="fetchOrders()">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="refunded">Refunded</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr>
+                            <th>Order Ref</th><th>Customer</th><th>Date</th><th>Amount</th><th>Payment</th><th>Status</th><th>Update</th>
+                        </tr></thead>
                         <tbody id="orders-table-body">
-                            <tr><td colspan="6" class="loading-state">Loading...</td></tr>
+                            <tr><td colspan="7" class="loading-state">Loading…</td></tr>
                         </tbody>
                     </table>
                 </div>
+                <div class="pagination-bar" id="orders-pagination"></div>
             </div>
 
+            <!-- ── USERS ── -->
             <div class="content-body hidden" id="content-users">
-                <div class="table-header">
-                    <h2>Manage Users</h2>
+                <div class="section-toolbar">
+                    <div class="toolbar-search">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="user-search" placeholder="Search by name, email, phone…" oninput="debounce(fetchUsers, 350)()">
+                    </div>
+                    <div class="toolbar-filters">
+                        <select id="user-status-filter" onchange="fetchUsers()">
+                            <option value="">All Users</option>
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Joined Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
+                        <thead><tr>
+                            <th>User</th><th>Email</th><th>Orders</th><th>Total Spent</th><th>Joined</th><th>Status</th><th>Actions</th>
+                        </tr></thead>
                         <tbody id="users-table-body">
-                            <tr><td colspan="4" class="loading-state">Loading...</td></tr>
+                            <tr><td colspan="7" class="loading-state">Loading…</td></tr>
                         </tbody>
                     </table>
                 </div>
+                <div class="pagination-bar" id="users-pagination"></div>
             </div>
         </main>
     </div>
+
+    <!-- ── ADD PRODUCT MODAL ── -->
+    <div id="product-modal-overlay" class="modal-overlay hidden" onclick="closeProductModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Product</h3>
+                <button class="modal-close" onclick="closeProductModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form id="product-form" onsubmit="submitProductForm(event)">
+                <input type="hidden" id="product-form-id">
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" id="pf-name" required placeholder="e.g. Mandala Wall Art">
+                    </div>
+                    <div class="form-group">
+                        <label>SKU</label>
+                        <input type="text" id="pf-sku" placeholder="e.g. KLY-ART-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="pf-category" placeholder="e.g. artistry">
+                    </div>
+                    <div class="form-group">
+                        <label>Price (₹) *</label>
+                        <input type="number" id="pf-price" required min="0" step="0.01" placeholder="999">
+                    </div>
+                    <div class="form-group">
+                        <label>Discount %</label>
+                        <input type="number" id="pf-discount" min="0" max="100" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="pf-stock" min="0" placeholder="50">
+                    </div>
+                    <div class="form-group modal-full">
+                        <label>Description</label>
+                        <textarea id="pf-description" rows="3" placeholder="Product description…"></textarea>
+                    </div>
+                    <div class="form-group modal-full">
+                        <label>Product Image</label>
+                        <input type="file" id="pf-image" accept="image/jpeg,image/png,image/webp">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-ghost-sm" onclick="closeProductModal()">Cancel</button>
+                    <button type="submit" class="btn-primary btn-sm" id="product-submit-btn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="admin-toast" class="admin-toast hidden"></div>
 
     <!-- Scripts -->
     <script src="scripts/admin.js"></script>
