@@ -1840,7 +1840,7 @@ nav.scrolled {
 
 /* ── GALLERY STRIP ── */
 .gallery-strip {
-  padding: 0 80px 120px;
+  padding: 0 80px 40px;
   overflow: hidden;
 }
 
@@ -3169,7 +3169,7 @@ footer {
   }
 
   .gallery-strip {
-    padding: 0 24px 80px;
+    padding: 0 24px 30px;
   }
 }
 
@@ -4623,7 +4623,7 @@ footer {
 /* ── STORE HIGHLIGHTS ─────────────────────────────────────────────── */
 .store-highlights {
   background: var(--off-white);
-  padding: 100px 0;
+  padding: 40px 0 100px;
   border-top: 1px solid var(--border-light);
   border-bottom: 1px solid var(--border-light);
 }
@@ -4728,7 +4728,7 @@ footer {
 
 @media (max-width: 640px) {
   .store-highlights {
-    padding: 60px 0;
+    padding: 30px 0 60px;
   }
 
   .highlights-inner {
