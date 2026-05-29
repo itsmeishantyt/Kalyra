@@ -1,613 +1,674 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact Us</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css">
-<link rel="icon" type="image/png" href="assets/imgs/favicon.png">
-<style>
-  /* Contact Page Specific Styles */
-  .contact-page {
-    padding-top: 0; /* Let the contact hero start immediately under the navbar */
-    min-height: 100vh;
-  }
-  
-  /* Hero Section with Golden Leaf Design */
-  .contact-hero {
-    position: relative;
-    padding: 130px 24px 60px; /* Same padding size as shop/apparel headers */
-    text-align: center;
-    background: linear-gradient(135deg, var(--off-white) 0%, var(--pure-white) 100%);
-    overflow: hidden;
-    isolation: isolate;
-  }
-  
-  /* Golden Leaf SVG Curve - Desktop Version */
-  .golden-leaf {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-  
-  .golden-leaf svg {
-    position: absolute;
-    width: 100%;
-    height: auto;
-    min-height: 100%;
-  }
-  
-  /* Main leaf curve - starts from left edge, curves around */
-  .leaf-curve-main {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .leaf-curve-main svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* Decorative leaf elements */
-  .leaf-decoration {
-    position: absolute;
-    opacity: 0.6;
-  }
-  
-  .leaf-1 {
-    top: 5%;
-    left: -2%;
-    width: 180px;
-    transform: rotate(-15deg);
-    animation: gentleFloat 8s ease-in-out infinite;
-  }
-  
-  .leaf-2 {
-    bottom: 8%;
-    right: -1%;
-    width: 140px;
-    transform: rotate(25deg);
-    animation: gentleFloat 10s ease-in-out infinite reverse;
-  }
-  
-  .leaf-3 {
-    top: 40%;
-    right: 5%;
-    width: 100px;
-    transform: rotate(45deg);
-    opacity: 0.4;
-    animation: gentleFloat 12s ease-in-out infinite;
-  }
-  
-  .leaf-4 {
-    bottom: 20%;
-    left: 3%;
-    width: 120px;
-    transform: rotate(-35deg);
-    opacity: 0.35;
-    animation: gentleFloat 9s ease-in-out infinite reverse;
-  }
-  
-  @keyframes gentleFloat {
-    0%, 100% { transform: translateY(0px) rotate(var(--rotation, 0deg)); }
-    50% { transform: translateY(-15px) rotate(var(--rotation, 0deg)); }
-  }
-  
-  .leaf-1 { --rotation: -15deg; }
-  .leaf-2 { --rotation: 25deg; }
-  .leaf-3 { --rotation: 45deg; }
-  .leaf-4 { --rotation: -35deg; }
-  
-  .contact-hero-title,
-  .contact-hero-sub {
-    position: relative;
-    z-index: 2;
-  }
-  
-  .contact-hero-title {
-    font-family: var(--serif);
-    font-size: clamp(42px, 5vw, 68px);
-    font-weight: 400;
-    color: var(--deep);
-    margin-bottom: 20px;
-  }
-  
-  .contact-hero-title em {
-    color: var(--accent);
-    font-style: italic;
-  }
-  
-  .contact-hero-sub {
-    font-size: 16px;
-    color: var(--mid);
-    max-width: 500px;
-    margin: 0 auto;
-    line-height: 1.7;
-  }
-  
-  .contact-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 60px;
-    padding: 60px 80px 100px;
-    max-width: 1400px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 2;
-  }
-  
-  /* Contact Info Side */
-  .contact-info {
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(10px);
-    padding: 48px;
-    border-radius: 24px;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.03);
-    border: 1px solid var(--border);
-  }
-  
-  .info-title {
-    font-family: var(--serif);
-    font-size: 28px;
-    font-weight: 400;
-    margin-bottom: 16px;
-    color: var(--deep);
-  }
-  
-  .info-desc {
-    color: var(--mid);
-    line-height: 1.7;
-    margin-bottom: 40px;
-    font-size: 14px;
-  }
-  
-  .info-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 32px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border-light);
-  }
-  
-  .info-icon {
-    width: 44px;
-    height: 44px;
-    background: var(--blush-soft);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  
-  .info-icon svg {
-    width: 20px;
-    height: 20px;
-    stroke: var(--accent);
-    stroke-width: 1.5;
-  }
-  
-  .info-content h4 {
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 6px;
-    color: var(--deep);
-  }
-  
-  .info-content p, .info-content a {
-    font-size: 14px;
-    color: var(--mid);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  
-  .info-content a:hover {
-    color: var(--accent);
-  }
-  
-  /* WhatsApp Button */
-  .whatsapp-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background: #25D366;
-    color: white;
-    padding: 14px 28px;
-    border-radius: 100px;
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 20px;
-    transition: all 0.2s;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  
-  .whatsapp-btn:hover {
-    background: #128C7E;
-    transform: translateY(-2px);
-  }
-  
-  .whatsapp-btn svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: white;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  
-  /* Form Side */
-  .contact-form-wrapper {
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(10px);
-    padding: 48px;
-    border-radius: 24px;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.03);
-    border: 1px solid var(--border);
-  }
-  
-  .form-title {
-    font-family: var(--serif);
-    font-size: 28px;
-    font-weight: 400;
-    margin-bottom: 8px;
-    color: var(--deep);
-  }
-  
-  .form-sub {
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 32px;
-  }
-  
-  .form-group {
-    margin-bottom: 24px;
-  }
-  
-  .form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--mid);
-    margin-bottom: 8px;
-  }
-  
-  .form-group input,
-  .form-group textarea {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-family: var(--sans);
-    font-size: 14px;
-    background: var(--off-white);
-    transition: all 0.2s;
-    color: var(--deep);
-  }
-  
-  .form-group input:focus,
-  .form-group textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: var(--pure-white);
-  }
-  
-  .form-group textarea {
-    resize: vertical;
-    min-height: 120px;
-  }
-  
-  .submit-btn {
-    width: 100%;
-    background: var(--accent);
-    color: white;
-    padding: 14px;
-    border: none;
-    border-radius: 100px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .submit-btn:hover {
-    background: var(--accent-dark);
-    transform: translateY(-2px);
-  }
-  
-  /* Map Section */
-  .map-section {
-    padding: 0 80px 100px;
-    position: relative;
-    z-index: 2;
-  }
-  
-  .map-container {
-    background: var(--beige);
-    border-radius: 24px;
-    overflow: hidden;
-    height: 320px;
-    border: 1px solid var(--border);
-  }
-  
-  .map-placeholder {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--beige) 0%, var(--light-beige) 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--mid);
-    font-family: var(--serif);
-    font-size: 18px;
-    gap: 12px;
-  }
-  
-  /* Responsive - Tablet */
-  @media (max-width: 1024px) {
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
+  <style>
+    /* Contact Page Specific Styles */
+    .contact-page {
+      padding-top: 0;
+      /* Let the contact hero start immediately under the navbar */
+      min-height: 100vh;
+    }
+
+    /* Hero Section with Golden Leaf Design */
     .contact-hero {
-      padding: 110px 24px 50px; /* Adjusted vertical padding for navbar clearance */
+      position: relative;
+      padding: 130px 24px 60px;
+      /* Same padding size as shop/apparel headers */
+      text-align: center;
+      background: linear-gradient(135deg, var(--off-white) 0%, var(--pure-white) 100%);
+      overflow: hidden;
+      isolation: isolate;
     }
-    .contact-container {
-      grid-template-columns: 1fr;
-      padding: 40px 24px 80px;
-      gap: 40px;
+
+    /* Golden Leaf SVG Curve - Desktop Version */
+    .golden-leaf {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
     }
-    .contact-info, .contact-form-wrapper {
-      padding: 32px;
-    }
-    .map-section {
-      padding: 0 24px 80px;
-    }
-    
-    .leaf-1 { width: 120px; }
-    .leaf-2 { width: 100px; }
-    .leaf-3 { width: 80px; }
-    .leaf-4 { width: 90px; }
-  }
-  
-  /* Responsive - Mobile */
-  @media (max-width: 640px) {
-    .contact-hero {
-      padding: 100px 24px 40px; /* Adjusted vertical padding for navbar clearance */
-    }
-    .contact-info, .contact-form-wrapper {
-      padding: 24px;
-    }
-    
+
     .golden-leaf svg {
-      width: auto;
+      position: absolute;
+      width: 100%;
+      height: auto;
+      min-height: 100%;
+    }
+
+    /* Main leaf curve - starts from left edge, curves around */
+    .leaf-curve-main {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
       height: 100%;
     }
-    
-    .leaf-1 { 
-      width: 80px; 
-      top: 2%;
-      left: -5%;
+
+    .leaf-curve-main svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
-    .leaf-2 { 
-      width: 70px; 
-      bottom: 5%;
-      right: -3%;
+
+    /* Decorative leaf elements */
+    .leaf-decoration {
+      position: absolute;
+      opacity: 0.6;
     }
-    .leaf-3 { 
-      width: 60px; 
-      top: 30%;
-      right: -2%;
-    }
-    .leaf-4 { 
-      width: 65px; 
-      bottom: 15%;
+
+    .leaf-1 {
+      top: 5%;
       left: -2%;
+      width: 180px;
+      transform: rotate(-15deg);
+      animation: gentleFloat 8s ease-in-out infinite;
     }
-    
+
+    .leaf-2 {
+      bottom: 8%;
+      right: -1%;
+      width: 140px;
+      transform: rotate(25deg);
+      animation: gentleFloat 10s ease-in-out infinite reverse;
+    }
+
+    .leaf-3 {
+      top: 40%;
+      right: 5%;
+      width: 100px;
+      transform: rotate(45deg);
+      opacity: 0.4;
+      animation: gentleFloat 12s ease-in-out infinite;
+    }
+
+    .leaf-4 {
+      bottom: 20%;
+      left: 3%;
+      width: 120px;
+      transform: rotate(-35deg);
+      opacity: 0.35;
+      animation: gentleFloat 9s ease-in-out infinite reverse;
+    }
+
+    @keyframes gentleFloat {
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(var(--rotation, 0deg));
+      }
+
+      50% {
+        transform: translateY(-15px) rotate(var(--rotation, 0deg));
+      }
+    }
+
+    .leaf-1 {
+      --rotation: -15deg;
+    }
+
+    .leaf-2 {
+      --rotation: 25deg;
+    }
+
+    .leaf-3 {
+      --rotation: 45deg;
+    }
+
+    .leaf-4 {
+      --rotation: -35deg;
+    }
+
+    .contact-hero-title,
+    .contact-hero-sub {
+      position: relative;
+      z-index: 2;
+    }
+
+    .contact-hero-title {
+      font-family: var(--serif);
+      font-size: clamp(42px, 5vw, 68px);
+      font-weight: 400;
+      color: var(--deep);
+      margin-bottom: 20px;
+    }
+
+    .contact-hero-title em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .contact-hero-sub {
+      font-size: 16px;
+      color: var(--mid);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .contact-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 80px 100px;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Contact Info Side */
+    .contact-info {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 48px;
+      border-radius: 24px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border);
+    }
+
+    .info-title {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      color: var(--deep);
+    }
+
+    .info-desc {
+      color: var(--mid);
+      line-height: 1.7;
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+
     .info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .info-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--blush-soft);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .info-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent);
+      stroke-width: 1.5;
+    }
+
+    .info-content h4 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--deep);
+    }
+
+    .info-content p,
+    .info-content a {
+      font-size: 14px;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .info-content a:hover {
+      color: var(--accent);
+    }
+
+    /* WhatsApp Button */
+    .whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
       gap: 12px;
+      background: #25D366;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 20px;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .whatsapp-btn:hover {
+      background: #128C7E;
+      transform: translateY(-2px);
+    }
+
+    .whatsapp-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Form Side */
+    .contact-form-wrapper {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 48px;
+      border-radius: 24px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--border);
+    }
+
+    .form-title {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 8px;
+      color: var(--deep);
+    }
+
+    .form-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
       margin-bottom: 24px;
     }
-    
-    .info-icon {
-      width: 38px;
-      height: 38px;
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 8px;
     }
-    
-    .whatsapp-btn {
+
+    .form-group input,
+    .form-group textarea {
       width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: var(--sans);
+      font-size: 14px;
+      background: var(--off-white);
+      transition: all 0.2s;
+      color: var(--deep);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--pure-white);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .submit-btn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Map Section */
+    .map-section {
+      padding: 0 80px 100px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .map-container {
+      background: var(--beige);
+      border-radius: 24px;
+      overflow: hidden;
+      height: 320px;
+      border: 1px solid var(--border);
+    }
+
+    .map-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--beige) 0%, var(--light-beige) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
+      color: var(--mid);
+      font-family: var(--serif);
+      font-size: 18px;
+      gap: 12px;
     }
-  }
-  
-  /* Small Mobile */
-  @media (max-width: 480px) {
-    .contact-hero-title {
-      font-size: 36px;
+
+    /* Responsive - Tablet */
+    @media (max-width: 1024px) {
+      .contact-hero {
+        padding: 110px 24px 50px;
+        /* Adjusted vertical padding for navbar clearance */
+      }
+
+      .contact-container {
+        grid-template-columns: 1fr;
+        padding: 40px 24px 80px;
+        gap: 40px;
+      }
+
+      .contact-info,
+      .contact-form-wrapper {
+        padding: 32px;
+      }
+
+      .map-section {
+        padding: 0 24px 80px;
+      }
+
+      .leaf-1 {
+        width: 120px;
+      }
+
+      .leaf-2 {
+        width: 100px;
+      }
+
+      .leaf-3 {
+        width: 80px;
+      }
+
+      .leaf-4 {
+        width: 90px;
+      }
     }
-    
-    .contact-hero-sub {
-      font-size: 14px;
+
+    /* Responsive - Mobile */
+    @media (max-width: 640px) {
+      .contact-hero {
+        padding: 100px 24px 40px;
+        /* Adjusted vertical padding for navbar clearance */
+      }
+
+      .contact-info,
+      .contact-form-wrapper {
+        padding: 24px;
+      }
+
+      .golden-leaf svg {
+        width: auto;
+        height: 100%;
+      }
+
+      .leaf-1 {
+        width: 80px;
+        top: 2%;
+        left: -5%;
+      }
+
+      .leaf-2 {
+        width: 70px;
+        bottom: 5%;
+        right: -3%;
+      }
+
+      .leaf-3 {
+        width: 60px;
+        top: 30%;
+        right: -2%;
+      }
+
+      .leaf-4 {
+        width: 65px;
+        bottom: 15%;
+        left: -2%;
+      }
+
+      .info-item {
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .info-icon {
+        width: 38px;
+        height: 38px;
+      }
+
+      .whatsapp-btn {
+        width: 100%;
+        justify-content: center;
+      }
     }
-    
-    .leaf-1 { width: 60px; }
-    .leaf-2 { width: 55px; }
-    .leaf-3 { width: 50px; }
-    .leaf-4 { width: 50px; }
-    
-    .map-placeholder span {
-      font-size: 14px;
-      padding: 0 20px;
-      text-align: center;
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+      .contact-hero-title {
+        font-size: 36px;
+      }
+
+      .contact-hero-sub {
+        font-size: 14px;
+      }
+
+      .leaf-1 {
+        width: 60px;
+      }
+
+      .leaf-2 {
+        width: 55px;
+      }
+
+      .leaf-3 {
+        width: 50px;
+      }
+
+      .leaf-4 {
+        width: 50px;
+      }
+
+      .map-placeholder span {
+        font-size: 14px;
+        padding: 0 20px;
+        text-align: center;
+      }
     }
-  }
-</style>
+  </style>
 </head>
+
 <body>
 
-<nav id="navbar"></nav>
+  <nav id="navbar"></nav>
 
-<div class="contact-page">
-  <div class="contact-hero reveal">
-    <!-- Golden Leaf Design Elements -->
-    <div class="golden-leaf">
-      <!-- Main sweeping curve from left edge -->
-      <svg class="leaf-curve-main" viewBox="0 0 1440 400" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0 0 L1440 0 L1440 400 L0 400 Z" fill="url(#leafGradient)" fill-opacity="0.08"/>
-        <path d="M0 200 C200 180, 400 220, 600 200 C800 180, 1000 150, 1440 180" 
-              stroke="url(#leafGradient)" stroke-width="2" fill="none" opacity="0.3"/>
-        <path d="M0 240 C250 220, 450 260, 650 240 C850 220, 1050 190, 1440 220" 
-              stroke="url(#leafGradient)" stroke-width="1.5" fill="none" opacity="0.2"/>
-        <defs>
-          <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#c4a265" stop-opacity="0"/>
-            <stop offset="20%" stop-color="#c4a265" stop-opacity="0.4"/>
-            <stop offset="50%" stop-color="#d4b87a" stop-opacity="0.6"/>
-            <stop offset="80%" stop-color="#c4a265" stop-opacity="0.3"/>
-            <stop offset="100%" stop-color="#c4a265" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-      </svg>
-      
-      <!-- Decorative leaf silhouettes -->
-      <svg class="leaf-decoration leaf-1" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 10 C70 30, 85 60, 80 90 C75 110, 60 115, 50 110 C40 115, 25 110, 20 90 C15 60, 30 30, 50 10Z" 
-              fill="#c4a265" fill-opacity="0.15" stroke="#c4a265" stroke-width="1" stroke-opacity="0.3"/>
-        <path d="M50 10 L50 50" stroke="#c4a265" stroke-width="0.8" stroke-opacity="0.25"/>
-        <path d="M50 30 C40 25, 30 35, 28 45" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none"/>
-        <path d="M50 30 C60 25, 70 35, 72 45" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none"/>
-        <path d="M50 50 C42 48, 35 55, 33 65" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none"/>
-        <path d="M50 50 C58 48, 65 55, 67 65" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none"/>
-      </svg>
-      
-      <svg class="leaf-decoration leaf-2" viewBox="0 0 80 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M40 8 C58 25, 70 50, 65 75 C60 92, 48 96, 40 92 C32 96, 20 92, 15 75 C10 50, 22 25, 40 8Z" 
-              fill="#d4b87a" fill-opacity="0.12" stroke="#d4b87a" stroke-width="1" stroke-opacity="0.25"/>
-        <path d="M40 8 L40 42" stroke="#d4b87a" stroke-width="0.7" stroke-opacity="0.2"/>
-        <path d="M40 25 C32 21, 24 30, 22 38" stroke="#d4b87a" stroke-width="0.5" stroke-opacity="0.15" fill="none"/>
-        <path d="M40 25 C48 21, 56 30, 58 38" stroke="#d4b87a" stroke-width="0.5" stroke-opacity="0.15" fill="none"/>
-      </svg>
-      
-      <svg class="leaf-decoration leaf-3" viewBox="0 0 70 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M35 6 C52 20, 62 42, 58 65 C54 80, 43 84, 35 80 C27 84, 16 80, 12 65 C8 42, 18 20, 35 6Z" 
-              fill="#c4a265" fill-opacity="0.1" stroke="#c4a265" stroke-width="0.8" stroke-opacity="0.2"/>
-      </svg>
-      
-      <svg class="leaf-decoration leaf-4" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M45 8 C65 28, 78 58, 72 82 C67 100, 54 104, 45 100 C36 104, 23 100, 18 82 C12 58, 25 28, 45 8Z" 
-              fill="#d4b87a" fill-opacity="0.08" stroke="#d4b87a" stroke-width="0.8" stroke-opacity="0.2"/>
-        <path d="M45 8 L45 45" stroke="#d4b87a" stroke-width="0.6" stroke-opacity="0.15"/>
-      </svg>
-    </div>
-    
-    <h1 class="contact-hero-title">Let's <em>Connect</em></h1>
-    <p class="contact-hero-sub">Have a question or just want to say hello? We'd love to hear from you.</p>
-  </div>
-  
-  <div class="contact-container">
-    <!-- Contact Information -->
-    <div class="contact-info reveal">
-      <h2 class="info-title">Get in touch</h2>
-      <p class="info-desc">Reach out through any of these channels and we'll get back to you within 24 hours.</p>
-      
-      <div class="info-item">
-        <div class="info-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
-        </div>
-        <div class="info-content">
-          <h4>Phone</h4>
-          <a href="tel:+1234567890">+1 (234) 567-890</a>
-        </div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-            <polyline points="22,6 12,13 2,6"/>
-          </svg>
-        </div>
-        <div class="info-content">
-          <h4>Email</h4>
-          <a href="mailto:hello@essential.com">hello@essential.com</a>
-        </div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-        </div>
-        <div class="info-content">
-          <h4>Studio</h4>
-          <p>123 Design Street, Creative District<br>New York, NY 10001</p>
-        </div>
-      </div>
-      
-      <!-- WhatsApp Button -->
-      <a href="https://wa.me/1234567890?text=Hello%20Essential%2C%20I%27d%20like%20to%20know%20more%20about%20your%20products" 
-         class="whatsapp-btn" 
-         target="_blank">
-        <svg viewBox="0 0 24 24">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+  <div class="contact-page">
+    <div class="contact-hero reveal">
+      <!-- Golden Leaf Design Elements -->
+      <div class="golden-leaf">
+        <!-- Main sweeping curve from left edge -->
+        <svg class="leaf-curve-main" viewBox="0 0 1440 400" fill="none" xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none">
+          <path d="M0 0 L1440 0 L1440 400 L0 400 Z" fill="url(#leafGradient)" fill-opacity="0.08" />
+          <path d="M0 200 C200 180, 400 220, 600 200 C800 180, 1000 150, 1440 180" stroke="url(#leafGradient)"
+            stroke-width="2" fill="none" opacity="0.3" />
+          <path d="M0 240 C250 220, 450 260, 650 240 C850 220, 1050 190, 1440 220" stroke="url(#leafGradient)"
+            stroke-width="1.5" fill="none" opacity="0.2" />
+          <defs>
+            <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#c4a265" stop-opacity="0" />
+              <stop offset="20%" stop-color="#c4a265" stop-opacity="0.4" />
+              <stop offset="50%" stop-color="#d4b87a" stop-opacity="0.6" />
+              <stop offset="80%" stop-color="#c4a265" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="#c4a265" stop-opacity="0" />
+            </linearGradient>
+          </defs>
         </svg>
-        Chat on WhatsApp
-      </a>
+
+        <!-- Decorative leaf silhouettes -->
+        <svg class="leaf-decoration leaf-1" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10 C70 30, 85 60, 80 90 C75 110, 60 115, 50 110 C40 115, 25 110, 20 90 C15 60, 30 30, 50 10Z"
+            fill="#c4a265" fill-opacity="0.15" stroke="#c4a265" stroke-width="1" stroke-opacity="0.3" />
+          <path d="M50 10 L50 50" stroke="#c4a265" stroke-width="0.8" stroke-opacity="0.25" />
+          <path d="M50 30 C40 25, 30 35, 28 45" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none" />
+          <path d="M50 30 C60 25, 70 35, 72 45" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none" />
+          <path d="M50 50 C42 48, 35 55, 33 65" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none" />
+          <path d="M50 50 C58 48, 65 55, 67 65" stroke="#c4a265" stroke-width="0.6" stroke-opacity="0.2" fill="none" />
+        </svg>
+
+        <svg class="leaf-decoration leaf-2" viewBox="0 0 80 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 8 C58 25, 70 50, 65 75 C60 92, 48 96, 40 92 C32 96, 20 92, 15 75 C10 50, 22 25, 40 8Z"
+            fill="#d4b87a" fill-opacity="0.12" stroke="#d4b87a" stroke-width="1" stroke-opacity="0.25" />
+          <path d="M40 8 L40 42" stroke="#d4b87a" stroke-width="0.7" stroke-opacity="0.2" />
+          <path d="M40 25 C32 21, 24 30, 22 38" stroke="#d4b87a" stroke-width="0.5" stroke-opacity="0.15" fill="none" />
+          <path d="M40 25 C48 21, 56 30, 58 38" stroke="#d4b87a" stroke-width="0.5" stroke-opacity="0.15" fill="none" />
+        </svg>
+
+        <svg class="leaf-decoration leaf-3" viewBox="0 0 70 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M35 6 C52 20, 62 42, 58 65 C54 80, 43 84, 35 80 C27 84, 16 80, 12 65 C8 42, 18 20, 35 6Z"
+            fill="#c4a265" fill-opacity="0.1" stroke="#c4a265" stroke-width="0.8" stroke-opacity="0.2" />
+        </svg>
+
+        <svg class="leaf-decoration leaf-4" viewBox="0 0 90 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M45 8 C65 28, 78 58, 72 82 C67 100, 54 104, 45 100 C36 104, 23 100, 18 82 C12 58, 25 28, 45 8Z"
+            fill="#d4b87a" fill-opacity="0.08" stroke="#d4b87a" stroke-width="0.8" stroke-opacity="0.2" />
+          <path d="M45 8 L45 45" stroke="#d4b87a" stroke-width="0.6" stroke-opacity="0.15" />
+        </svg>
+      </div>
+
+      <h1 class="contact-hero-title">Let's <em>Connect</em></h1>
+      <p class="contact-hero-sub">Reach out through any of the channels below, and we'll get back to you within 24
+        hours.</p>
     </div>
-    
-    <!-- Contact Form -->
-    <div class="contact-form-wrapper reveal">
-      <h2 class="form-title">Send us a message</h2>
-      <p class="form-sub">We'll respond as quickly as we can</p>
-      
-      <form id="contactForm">
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" placeholder="e.g., Emma Watson" required>
+
+    <div class="contact-container">
+      <!-- Contact Information -->
+      <div class="contact-info reveal">
+        <h2 class="info-title">Get in touch</h2>
+        <p class="info-desc"></p>
+
+        <div class="info-item">
+          <div class="info-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          </div>
+          <div class="info-content">
+            <h4>Phone</h4>
+            <a href="tel:+1234567890">+1 (234) 567-890</a>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" placeholder="hello@example.com" required>
+
+        <div class="info-item">
+          <div class="info-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </div>
+          <div class="info-content">
+            <h4>Email</h4>
+            <a href="mailto:kalyra.studio9@gmail.com">kalyra.studio9@gmail.com</a>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label>Subject</label>
-          <input type="text" placeholder="What is this regarding?">
+
+        <div class="info-item">
+          <div class="info-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+          </div>
+          <div class="info-content">
+            <h4>Studio</h4>
+            <p>Guwahati<br>Assam, 781021</p>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label>Message</label>
-          <textarea placeholder="Tell us more about your inquiry..."></textarea>
-        </div>
-        
-        <button type="submit" class="submit-btn">Send Message →</button>
-      </form>
+
+        <!-- WhatsApp Button -->
+        <a href="https://wa.me/1234567890?text=Hello%20Essential%2C%20I%27d%20like%20to%20know%20more%20about%20your%20products"
+          class="whatsapp-btn" target="_blank">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+          Chat on WhatsApp
+        </a>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="contact-form-wrapper reveal">
+        <h2 class="form-title">Send us a message</h2>
+        <p class="form-sub"></p>
+
+        <form id="contactForm">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" placeholder="e.g., Emma Watson" required>
+          </div>
+
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" placeholder="hello@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" placeholder="What is this regarding?">
+          </div>
+
+          <div class="form-group">
+            <label>Message</label>
+            <textarea placeholder="Tell us more about your inquiry..."></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn">Send Message →</button>
+        </form>
+      </div>
     </div>
-  </div>
-  
-  <!-- Map Section 
+
+    <!-- Map Section 
   <div class="map-section reveal">
     <div class="map-container">
       <div class="map-placeholder">
@@ -619,74 +680,79 @@
       </div>
     </div>
   </div> -->
-</div>
+  </div>
 
-<footer id="footer">
+  <footer id="footer">
     <div class="footer-top">
-        <div>
-            <div class="footer-brand">KALYRA</div>
-            <p class="footer-tagline">Kalyra is dedicated to bringing you the finest Indo-Western decoratives,
-                blending traditional artistry with modern elegance to elevate your living spaces.</p>
+      <div>
+        <div class="footer-brand">KALYRA</div>
+        <p class="footer-tagline">Kalyra is dedicated to bringing you the finest Indo-Western decoratives,
+          blending traditional artistry with modern elegance to elevate your living spaces.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Main Pages</div>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="shop.html">Shop</a></li>
+          <li><a href="apparel.html">Apparel</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Explore</div>
+        <ul class="footer-links">
+          <li><a href="shop.html">New Arrivals</a></li>
+          <li><a href="shop.html">Best Sellers</a></li>
+          <li><a href="about.html#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Information</div>
+        <ul class="footer-links">
+          <li><a href="#">Privacy policy</a></li>
+          <li><a href="#">Terms & conditions</a></li>
+          <li><a href="shipping.html">Shipping & Delivery</a></li>
+          <li><a href="#">Return policy</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Connect with Us</div>
+        <div class="social-links">
+          <a href="https://wa.me/your-number" target="_blank" aria-label="WhatsApp">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+          </a>
+          <a href="https://instagram.com/your-handle" target="_blank" aria-label="Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+            </svg>
+          </a>
         </div>
-        <div>
-            <div class="footer-col-title">Main Pages</div>
-            <ul class="footer-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="shop.html">Shop</a></li>
-                <li><a href="apparel.html">Apparel</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="contact.html">Contact</a></li>
-            </ul>
-        </div>
-        <div>
-            <div class="footer-col-title">Explore</div>
-            <ul class="footer-links">
-                <li><a href="shop.html">New Arrivals</a></li>
-                <li><a href="shop.html">Best Sellers</a></li>
-                <li><a href="about.html#faq">FAQ</a></li>
-            </ul>
-        </div>
-        <div>
-            <div class="footer-col-title">Information</div>
-            <ul class="footer-links">
-                <li><a href="#">Privacy policy</a></li>
-                <li><a href="#">Terms & conditions</a></li>
-                <li><a href="#">Return policy</a></li>
-            </ul>
-        </div>
-        <div>
-            <div class="footer-col-title">Connect with Us</div>
-            <div class="social-links">
-                <a href="https://wa.me/your-number" target="_blank" aria-label="WhatsApp">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                    </svg>
-                </a>
-                <a href="https://instagram.com/your-handle" target="_blank" aria-label="Instagram">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                    </svg>
-                </a>
-            </div>
-        </div>
+      </div>
     </div>
     <div class="footer-bottom">
-        <div class="footer-bottom-content">
-            <span>&copy; 2026 Kalyra Studio. All rights reserved.</span>
-        </div>
+      <div class="footer-bottom-content">
+        <span>&copy; 2026 Kalyra Studio. All rights reserved.</span>
+      </div>
     </div>
-</footer>
+  </footer>
 
-<script src="scripts/main.js"></script>
-<script>
-  // Simple form submission handler
-  document.getElementById('contactForm')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    alert('Thank you for your message! We will get back to you soon.');
-    this.reset();
-  });
-</script>
+  <script src="scripts/main.js"></script>
+  <script>
+    // Simple form submission handler
+    document.getElementById('contactForm')?.addEventListener('submit', function (e) {
+      e.preventDefault();
+      alert('Thank you for your message! We will get back to you soon.');
+      this.reset();
+    });
+  </script>
 </body>
+
 </html>
