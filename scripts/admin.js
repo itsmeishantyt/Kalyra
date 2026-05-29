@@ -75,6 +75,15 @@ logoutBtn.addEventListener('click', () => {
     showLogin();
 });
 
+function handleAuthExpired() {
+    localStorage.removeItem('kalyra_admin_token');
+    localStorage.removeItem('kalyra_admin_view');
+    adminToken = null;
+    state.activeView = 'overview';
+    showLogin();
+    toast('Session expired. Please log in again.', 'error');
+}
+
 function showLogin() {
     loginView.classList.remove('hidden');
     dashboardView.classList.add('hidden');
@@ -128,8 +137,7 @@ async function apiGet(path) {
             headers: { Authorization: `Bearer ${adminToken}` },
         });
         if (res.status === 401) {
-            // Token expired — show a non-destructive toast instead of kicking back to overview
-            toast('Session expired. Please log out and log in again.', 'error');
+            handleAuthExpired();
             return null;
         }
         return await res.json();
@@ -146,6 +154,10 @@ async function apiPatch(path, body) {
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
             body: JSON.stringify(body),
         });
+        if (res.status === 401) {
+            handleAuthExpired();
+            return null;
+        }
         return await res.json();
     } catch (err) {
         console.error('API PATCH error:', err);
@@ -160,6 +172,10 @@ async function apiPost(path, body) {
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
             body: JSON.stringify(body),
         });
+        if (res.status === 401) {
+            handleAuthExpired();
+            return null;
+        }
         return await res.json();
     } catch (err) {
         console.error('API POST error:', err);
@@ -455,6 +471,10 @@ async function submitProductForm(e) {
             headers: { Authorization: `Bearer ${adminToken}` },
             body: formData,
         });
+        if (res.status === 401) {
+            handleAuthExpired();
+            return;
+        }
         const data = await res.json();
         if (data.success) {
             toast(id ? 'Product updated' : 'Product added', 'success');
@@ -485,6 +505,10 @@ async function deleteCurrentProduct() {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${adminToken}` },
         });
+        if (res.status === 401) {
+            handleAuthExpired();
+            return;
+        }
         const data = await res.json();
         if (data.success) {
             toast('Product deleted successfully', 'success');
@@ -740,6 +764,10 @@ async function performBannerUpload(type = 'desktop') {
             headers: { Authorization: `Bearer ${adminToken}` },
             body: formData,
         });
+        if (res.status === 401) {
+            handleAuthExpired();
+            return;
+        }
         const data = await res.json();
         if (data?.success) {
             if (statusEl) {
@@ -777,6 +805,10 @@ async function removeBannerImage(type = 'desktop') {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${adminToken}` },
         });
+        if (res.status === 401) {
+            handleAuthExpired();
+            return;
+        }
         const data = await res.json();
         if (data?.success) {
             if (statusEl) {
