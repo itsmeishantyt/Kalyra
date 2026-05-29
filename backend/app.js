@@ -38,7 +38,7 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || '*')
 
 app.use(cors({
   origin: allowedOrigins.includes('*') ? '*' : (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (!origin || origin === 'null' || allowedOrigins.includes(origin)) return cb(null, true);
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -57,6 +57,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 // ── Static uploads ──────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 
 // ── Health check ────────────────────────────────────────────
 app.get('/api/v1/health', (req, res) => {

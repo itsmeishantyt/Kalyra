@@ -10,7 +10,7 @@ const router = express.Router();
 
 // ── Paths ────────────────────────────────────────────────────
 const SETTINGS_FILE  = path.join(__dirname, '..', '..', 'db', 'settings.json');
-const BANNER_DIR     = path.join(__dirname, '..', '..', 'uploads', 'banner');
+const BANNER_DIR     = path.join(__dirname, '..', '..', '..', 'assets', 'imgs');
 
 if (!fs.existsSync(BANNER_DIR)) fs.mkdirSync(BANNER_DIR, { recursive: true });
 
@@ -80,7 +80,7 @@ router.post('/banner/:type', requireAdmin(), (req, res, next) => {
     });
   } catch (_) {}
 
-  const imageUrl = `/uploads/banner/${newFilename}`;
+  const imageUrl = `/assets/imgs/${newFilename}`;
   const settings = readSettings();
   if (type === 'mobile') {
     settings.mobileBannerImage = imageUrl;
