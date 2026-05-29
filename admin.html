@@ -59,6 +59,10 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     Users
                 </button>
+                <button class="nav-item" data-view="settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Settings
+                </button>
             </nav>
             <div class="sidebar-footer">
                 <div class="admin-profile">
@@ -200,7 +204,147 @@
                     </table>
                 </div>
             </div>
+
+            <div class="content-body hidden" id="content-settings">
+                <div class="table-header">
+                    <h2>Manage Website Content</h2>
+                </div>
+                <div class="settings-form-container glass-panel" style="padding: 24px; border-radius: 12px; margin-top: 20px; background: #fff; border: 1px solid var(--admin-border);">
+                    <form id="website-settings-form">
+                        <!-- Hero Section Content -->
+                        <h3 style="border-bottom: 1px solid #f3f0ea; padding-bottom: 8px; margin-bottom: 16px;">Hero Banner Settings</h3>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label for="settings-hero-title">Hero Title (HTML supported)</label>
+                            <input type="text" id="settings-hero-title" class="admin-input" style="width:100%;" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label for="settings-hero-sub">Hero Subtitle</label>
+                            <textarea id="settings-hero-sub" class="admin-input" style="width:100%; min-height:80px;" required></textarea>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label for="settings-hero-image">Hero Image File</label>
+                            <input type="file" id="settings-hero-image" accept="image/*">
+                            <div style="margin-top: 8px;">
+                                <img id="settings-hero-image-preview" src="" style="max-height: 120px; border-radius: 6px; display: none;">
+                            </div>
+                        </div>
+
+                        <!-- CTA Section Content -->
+                        <h3 style="border-bottom: 1px solid #f3f0ea; padding-bottom: 8px; margin-top: 32px; margin-bottom: 16px;">CTA Banner Settings</h3>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label for="settings-cta-title">CTA Title (HTML supported)</label>
+                            <input type="text" id="settings-cta-title" class="admin-input" style="width:100%;" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label>CTA Gallery Images</label>
+                            <div style="display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 150px;">
+                                    <label style="font-size: 12px; color: var(--admin-text-muted);">Image 1</label>
+                                    <input type="file" id="settings-cta-image-1" accept="image/*">
+                                    <div style="margin-top: 8px;">
+                                        <img id="settings-cta-image-1-preview" src="" style="max-height: 80px; border-radius: 6px; display: none;">
+                                    </div>
+                                </div>
+                                <div style="flex: 1; min-width: 150px;">
+                                    <label style="font-size: 12px; color: var(--admin-text-muted);">Image 2</label>
+                                    <input type="file" id="settings-cta-image-2" accept="image/*">
+                                    <div style="margin-top: 8px;">
+                                        <img id="settings-cta-image-2-preview" src="" style="max-height: 80px; border-radius: 6px; display: none;">
+                                    </div>
+                                </div>
+                                <div style="flex: 1; min-width: 150px;">
+                                    <label style="font-size: 12px; color: var(--admin-text-muted);">Image 3</label>
+                                    <input type="file" id="settings-cta-image-3" accept="image/*">
+                                    <div style="margin-top: 8px;">
+                                        <img id="settings-cta-image-3-preview" src="" style="max-height: 80px; border-radius: 6px; display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="save-settings-btn" style="margin-top: 24px; max-width: 200px;">
+                            <span>Save Settings</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- Add / Edit Product Modal -->
+    <div id="product-modal-backdrop" class="modal-backdrop hidden"></div>
+    <div id="product-modal" class="admin-modal hidden" role="dialog" aria-modal="true" aria-label="Product details">
+        <button class="modal-close" id="product-modal-close" aria-label="Close modal">&times;</button>
+        <div class="modal-header">
+            <h2 id="product-modal-title">Add New Product</h2>
+            <p id="product-modal-sub">Enter the product showcase details</p>
+        </div>
+        <form id="product-form" style="max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 8px;">
+            <input type="hidden" id="product-id">
+            <div class="form-row" style="display:flex; gap:16px; margin-bottom:14px;">
+                <div class="form-group" style="flex:1;">
+                    <label for="product-name">Product Name *</label>
+                    <input type="text" id="product-name" class="admin-input" required placeholder="e.g. Resin Flower Coasters">
+                </div>
+                <div class="form-group" style="width: 180px;">
+                    <label for="product-sku">SKU / Code</label>
+                    <input type="text" id="product-sku" class="admin-input" placeholder="e.g. KLY-COAST-01">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:14px;">
+                <label for="product-desc">Description</label>
+                <textarea id="product-desc" class="admin-input" placeholder="Detailed description of the product pieces..." style="min-height: 80px;"></textarea>
+            </div>
+
+            <div class="form-row" style="display:flex; gap:16px; margin-bottom:14px;">
+                <div class="form-group" style="flex:1;">
+                    <label for="product-cat">Category *</label>
+                    <select id="product-cat" class="admin-input" required>
+                        <option value="">Select Category</option>
+                        <option value="artistry">Artistry</option>
+                        <option value="mandala">Mandala</option>
+                        <option value="living">Living</option>
+                        <option value="wearable">Wearable</option>
+                        <option value="bespoke">Bespoke</option>
+                        <option value="apparel">Apparel</option>
+                    </select>
+                </div>
+                <div class="form-group" style="width: 140px;">
+                    <label for="product-price">Price (₹) *</label>
+                    <input type="number" id="product-price" class="admin-input" required min="0" step="1" placeholder="1299">
+                </div>
+                <div class="form-group" style="width: 110px;">
+                    <label for="product-discount">Discount %</label>
+                    <input type="number" id="product-discount" class="admin-input" min="0" max="100" step="1" placeholder="0">
+                </div>
+                <div class="form-group" style="width: 110px;">
+                    <label for="product-stock">Stock *</label>
+                    <input type="number" id="product-stock" class="admin-input" required min="0" step="1" placeholder="10">
+                </div>
+            </div>
+
+            <div class="form-row" style="display:flex; gap:16px; margin-bottom:14px;">
+                <div class="form-group" style="flex:1;">
+                    <label for="product-sizes">Sizes (JSON or comma separated)</label>
+                    <input type="text" id="product-sizes" class="admin-input" placeholder='e.g. ["S", "M", "L"] or Standard'>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label for="product-colors">Colors (JSON or comma separated)</label>
+                    <input type="text" id="product-colors" class="admin-input" placeholder='e.g. ["Blue", "Gold"] or None'>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:20px;">
+                <label for="product-image">Product Image File</label>
+                <input type="file" id="product-image" accept="image/*">
+                <div style="margin-top: 10px;">
+                    <img id="product-image-preview" src="" style="max-height: 120px; border-radius: 8px; display: none;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="btn-save-product" style="width:100%; height:48px; background:var(--stitch-gold,#B89B71); color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Save Product</button>
+        </form>
     </div>
 
     <!-- Scripts -->

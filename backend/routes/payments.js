@@ -4,6 +4,7 @@ const { getDb } = require('../db/init');
 const { requireAuth } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const { razorpay, verifySignature, KEY_ID } = require('../utils/razorpay');
+const { sendOrderConfirmation } = require('../utils/mailer');
 const R = require('../utils/response');
 
 const router = express.Router();
@@ -115,9 +116,20 @@ router.post('/webhook', requireAuth, [
       .run(razorpay_order_id);
 
     // Clear cart for the user who made the order
-    const payment = db.prepare('SELECT user_id FROM payment_history WHERE razorpay_order_id = ?').get(razorpay_order_id);
+    const payment = db.prepare('SELECT user_id, order_id FROM payment_history WHERE razorpay_order_id = ?').get(razorpay_order_id);
     const userId = payment ? payment.user_id : req.user.id;
     db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(userId);
+
+    // Send order confirmation email (non-blocking)
+    if (payment) {
+      const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(payment.order_id);
+      const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(payment.order_id);
+      const user  = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(payment.user_id);
+      if (order && items.length && user) {
+        sendOrderConfirmation(user, order, items)
+          .catch(err => console.error('[mailer] Order confirmation email failed:', err.message));
+      }
+    }
 
     return R.success(res, { verified: true }, 'Payment verified successfully');
   } catch (err) { next(err); }

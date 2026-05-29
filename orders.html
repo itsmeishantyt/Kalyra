@@ -222,6 +222,9 @@ async function openOrderDetail(orderId, ref) {
 
         const addressLine = [order.line1, order.line2, order.city, order.state, order.postal_code, order.country].filter(Boolean).join(', ');
 
+        const isPaid = payments && payments.some(p => p.status === 'success');
+        const totalLabel = isPaid ? 'Total Paid' : 'Total Payable';
+
         content.innerHTML = `
             <div class="drawer-section-title">Items</div>
             ${itemRows}
@@ -229,7 +232,7 @@ async function openOrderDetail(orderId, ref) {
             <div class="drawer-total-row"><span>Subtotal</span><span>₹${Number(order.subtotal).toLocaleString('en-IN')}</span></div>
             ${order.discount_amount > 0 ? `<div class="drawer-total-row"><span>Discount${order.promo_code ? ' (' + order.promo_code + ')' : ''}</span><span style="color:#2d6a4f">−₹${Number(order.discount_amount).toLocaleString('en-IN')}</span></div>` : ''}
             <div class="drawer-total-row"><span>GST (5%)</span><span>₹${Number(order.tax_amount).toLocaleString('en-IN')}</span></div>
-            <div class="drawer-total-row grand"><span>Total Paid</span><span>₹${Number(order.total_amount).toLocaleString('en-IN')}</span></div>
+            <div class="drawer-total-row grand"><span>${totalLabel}</span><span>₹${Number(order.total_amount).toLocaleString('en-IN')}</span></div>
             ${addressLine ? `<div class="drawer-section-title">Delivery Address</div><div class="drawer-address-block">${addressLine}</div>` : ''}`;
     } catch (e) {
         content.innerHTML = `<p style="color:#c0392b;font-family:var(--sans);font-size:14px;">Could not load order details.</p>`;

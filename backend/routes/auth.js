@@ -2,12 +2,13 @@ const express = require('express');
 const { body } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 const { getDb } = require('../db/init');
-const { signAccess, signRefresh, verifyRefresh, refreshExpiresAt } = require('../utils/jwt');
+const { signAccess, signRefresh, verifyAccess, verifyRefresh, refreshExpiresAt } = require('../utils/jwt');
 const { validate } = require('../middleware/validate');
-const { sendPasswordReset } = require('../utils/mailer');
+const { sendPasswordReset, sendOtp, sendWelcomeEmail } = require('../utils/mailer');
 const R = require('../utils/response');
 
 const router = express.Router();
@@ -19,6 +20,77 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many attempts. Try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+// ─────────────────────────────────────────────────────────────
+//  POST /api/v1/auth/send-otp
+// ─────────────────────────────────────────────────────────────
+router.post('/send-otp', authLimiter, [
+  body('email').trim().isEmail().withMessage('Valid email required').normalizeEmail(),
+  body('name').optional().trim().isLength({ max: 100 }),
+], validate, async (req, res, next) => {
+  try {
+    const { email, name } = req.body;
+    const db = getDb();
+
+    // Block if email already registered
+    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    if (existing) return R.error(res, 'Email is already registered', 409);
+
+    // Generate 6-digit OTP
+    const otp      = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash  = crypto.createHash('sha256').update(otp).digest('hex');
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
+
+    // Invalidate old OTPs for this email
+    db.prepare("UPDATE email_otps SET used = 1 WHERE email = ? AND purpose = 'signup'").run(email);
+
+    // Store new OTP
+    db.prepare(`
+      INSERT INTO email_otps (email, otp_hash, purpose, expires_at)
+      VALUES (?, ?, 'signup', ?)
+    `).run(email, otpHash, expiresAt);
+
+    // Send OTP email
+    await sendOtp(email, otp, name || '');
+
+    // In dev mode (no API key) return the OTP in the response
+    const devData = (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_YOUR_KEY_HERE')
+      ? { _dev_otp: otp }
+      : null;
+
+    return R.success(res, devData, 'Verification code sent to your email');
+  } catch (err) { next(err); }
+});
+
+// ─────────────────────────────────────────────────────────────
+//  POST /api/v1/auth/verify-otp
+// ─────────────────────────────────────────────────────────────
+router.post('/verify-otp', authLimiter, [
+  body('email').trim().isEmail().normalizeEmail(),
+  body('otp').trim().isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits').isNumeric(),
+], validate, async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const db = getDb();
+
+    const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+    const record  = db.prepare(`
+      SELECT * FROM email_otps
+      WHERE email = ? AND otp_hash = ? AND used = 0 AND purpose = 'signup'
+        AND expires_at > datetime('now')
+    `).get(email, otpHash);
+
+    if (!record) return R.badRequest(res, 'Invalid or expired verification code');
+
+    // Mark OTP as used
+    db.prepare('UPDATE email_otps SET used = 1 WHERE id = ?').run(record.id);
+
+    // Issue a short-lived OTP-verified token (JWT, 15 min)
+    const otpToken = signAccess({ email, otpVerified: true, purpose: 'signup' });
+
+    return R.success(res, { otp_token: otpToken }, 'Email verified successfully');
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -35,10 +107,22 @@ router.post('/register', authLimiter, [
     .optional({ nullable: true, checkFalsy: true })
     .trim()
     .isMobilePhone('any').withMessage('Invalid phone number'),
+  body('otp_token').notEmpty().withMessage('Email verification required'),
 ], validate, async (req, res, next) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, otp_token } = req.body;
     const db = getDb();
+
+    // Validate OTP token
+    let otpPayload;
+    try {
+      otpPayload = verifyAccess(otp_token);
+    } catch {
+      return R.badRequest(res, 'Email verification token is invalid or expired. Please verify your email again.');
+    }
+    if (!otpPayload.otpVerified || otpPayload.purpose !== 'signup' || otpPayload.email !== email) {
+      return R.badRequest(res, 'Email verification mismatch. Please verify your email again.');
+    }
 
     // Check duplicate email
     const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
@@ -65,6 +149,9 @@ router.post('/register', authLimiter, [
 
     // Update stored refresh token with signed JWT
     db.prepare('UPDATE sessions SET refresh_token = ? WHERE refresh_token = ?').run(rfToken, refreshToken);
+
+    // Send welcome email (non-blocking — don't fail register if email fails)
+    sendWelcomeEmail(user).catch(err => console.error('[mailer] Welcome email failed:', err.message));
 
     return R.created(res, { user, accessToken, refreshToken: rfToken }, 'Account created successfully');
   } catch (err) { next(err); }

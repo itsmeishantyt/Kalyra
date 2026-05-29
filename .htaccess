@@ -1,0 +1,11 @@
+# Enable URL Rewriting
+RewriteEngine On
+
+# 1. Strip .html extension from browser address bar (Redirect shop.html -> shop)
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+(.*?)\.html[\?\s] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# 2. Internally serve path.html when path is requested (Rewrite shop -> shop.html)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.*)$ $1.html [NC,L]

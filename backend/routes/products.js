@@ -14,7 +14,7 @@ router.get('/', [
   query('search').optional().trim(),
   query('min_price').optional().isFloat({ min: 0 }).toFloat(),
   query('max_price').optional().isFloat({ min: 0 }).toFloat(),
-  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount']),
+  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount', 'best_selling', 'trending', 'top_rated', 'new_arrivals']),
   query('in_stock').optional().isBoolean().toBoolean(),
 ], validate, (req, res, next) => {
   try {
@@ -37,7 +37,11 @@ router.get('/', [
       price_asc:  'p.price ASC',
       price_desc: 'p.price DESC',
       newest:     'p.created_at DESC',
+      new_arrivals: 'p.created_at DESC',
       discount:   'p.discount_pct DESC',
+      best_selling: '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE oi.product_id = p.id AND o.status NOT IN (\'cancelled\', \'refunded\')) DESC',
+      trending:     '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE oi.product_id = p.id AND o.status NOT IN (\'cancelled\', \'refunded\') AND o.created_at >= datetime(\'now\', \'-30 days\')) DESC',
+      top_rated:    '(SELECT COUNT(*) FROM liked_products lp WHERE lp.product_id = p.id) DESC',
     };
     const orderClause = orderMap[sort] || 'p.created_at DESC';
 

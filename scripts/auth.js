@@ -4,7 +4,7 @@
  * session persistence, and navbar UI state.
  */
 
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '349751177817-oo4elddbeu78b35j34bo3uj88n4f8did.apps.googleusercontent.com';
 
 /* ─── Toast helper ─────────────────────────────────────── */
 function showToast(msg, type = 'info') {
@@ -115,16 +115,22 @@ function updateNavbarUserState() {
       `;
 
       link.addEventListener('click', e => {
+        const logoutBtn = e.target.closest('#nav-logout-btn');
+        if (logoutBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          KalyraAuth.logout();
+          return;
+        }
         e.stopPropagation();
         const dd = document.getElementById('nav-user-dropdown');
         if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
       });
 
       document.addEventListener('click', e => {
-        if (e.target?.id === 'nav-logout-btn') { e.preventDefault(); KalyraAuth.logout(); }
-        else {
-          const dd = document.getElementById('nav-user-dropdown');
-          if (dd && !link.contains(e.target)) dd.style.display = 'none';
+        const dd = document.getElementById('nav-user-dropdown');
+        if (dd && !link.contains(e.target)) {
+          dd.style.display = 'none';
         }
       });
     });
@@ -146,7 +152,8 @@ const SignupFlow = {
   goTo(step) {
     const prev = this.currentStep;
     document.getElementById(`signup-step-${prev}`)?.setAttribute('hidden', '');
-    document.getElementById(`signup-step-${step}`)?.removeAttribute('hidden');
+    const next = document.getElementById(`signup-step-${step}`);
+    if (next) next.removeAttribute('hidden');
     this.currentStep = step;
     this._updateIndicator(step);
   },
@@ -164,17 +171,20 @@ const SignupFlow = {
 
   reset() {
     this.goTo(1);
-    ['signup-name','signup-email','signup-phone','signup-password','signup-confirm'].forEach(id => {
+    ['signup-name', 'signup-email', 'signup-phone', 'signup-password', 'signup-confirm', 'signup-otp'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
     const tc = document.getElementById('signup-terms');
     if (tc) tc.checked = false;
     document.querySelectorAll('.field-error').forEach(e => e.textContent = '');
-    document.getElementById('signup-api-error')?.style.setProperty('display','none');
+    document.getElementById('signup-api-error')?.style.setProperty('display', 'none');
     // Reset password strength
-    document.getElementById('pw-strength-wrap')?.style.setProperty('display','none');
+    document.getElementById('pw-strength-wrap')?.style.setProperty('display', 'none');
     document.querySelectorAll('.req-item').forEach(r => r.classList.remove('met'));
+    // Reset OTP state
+    _otpToken = null;
+    _otpCooldownTimer = null;
   },
 };
 
@@ -188,7 +198,7 @@ function clearError(id) { setError(id, ''); }
 /* ─── Password strength calculator ─────────────────────── */
 function calcPasswordStrength(pw) {
   let score = 0;
-  if (pw.length >= 8)  score++;
+  if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
   if (/[A-Z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
@@ -197,32 +207,32 @@ function calcPasswordStrength(pw) {
 }
 
 function updatePasswordUI(pw) {
-  const wrap  = document.getElementById('pw-strength-wrap');
-  const fill  = document.getElementById('pw-strength-fill');
+  const wrap = document.getElementById('pw-strength-wrap');
+  const fill = document.getElementById('pw-strength-fill');
   const label = document.getElementById('pw-strength-label');
 
-  if (!pw) { wrap?.style.setProperty('display','none'); return; }
+  if (!pw) { wrap?.style.setProperty('display', 'none'); return; }
   wrap?.style.removeProperty('display');
 
   const score = calcPasswordStrength(pw);
   const levels = [
     { pct: '20%', color: '#e74c3c', text: 'Very weak' },
-    { pct: '40%', color: '#e67e22', text: 'Weak'      },
-    { pct: '60%', color: '#f1c40f', text: 'Fair'      },
-    { pct: '80%', color: '#2ecc71', text: 'Strong'    },
-    { pct: '100%',color: '#27ae60', text: 'Very strong'},
+    { pct: '40%', color: '#e67e22', text: 'Weak' },
+    { pct: '60%', color: '#f1c40f', text: 'Fair' },
+    { pct: '80%', color: '#2ecc71', text: 'Strong' },
+    { pct: '100%', color: '#27ae60', text: 'Very strong' },
   ];
   const l = levels[Math.min(score - 1, 4)] || levels[0];
-  if (fill)  { fill.style.width = l.pct; fill.style.background = l.color; }
+  if (fill) { fill.style.width = l.pct; fill.style.background = l.color; }
   if (label) { label.textContent = l.text; label.style.color = l.color; }
 
   // Requirements
-  const reqLen   = document.getElementById('req-len');
+  const reqLen = document.getElementById('req-len');
   const reqUpper = document.getElementById('req-upper');
-  const reqNum   = document.getElementById('req-num');
-  reqLen?.classList.toggle('met',   pw.length >= 8);
+  const reqNum = document.getElementById('req-num');
+  reqLen?.classList.toggle('met', pw.length >= 8);
   reqUpper?.classList.toggle('met', /[A-Z]/.test(pw));
-  reqNum?.classList.toggle('met',   /[0-9]/.test(pw));
+  reqNum?.classList.toggle('met', /[0-9]/.test(pw));
 }
 
 /* ─── Validation helpers ────────────────────────────────── */
@@ -230,7 +240,7 @@ function validateStep1() {
   let ok = true;
   clearError('err-name'); clearError('err-email'); clearError('err-phone');
 
-  const name  = document.getElementById('signup-name')?.value.trim();
+  const name = document.getElementById('signup-name')?.value.trim();
   const email = document.getElementById('signup-email')?.value.trim();
   const phone = document.getElementById('signup-phone')?.value.trim();
 
@@ -248,7 +258,7 @@ function validateStep2() {
   let ok = true;
   clearError('err-password'); clearError('err-confirm');
 
-  const pw  = document.getElementById('signup-password')?.value;
+  const pw = document.getElementById('signup-password')?.value;
   const pw2 = document.getElementById('signup-confirm')?.value;
 
   if (!pw || pw.length < 8) {
@@ -265,14 +275,14 @@ function validateStep2() {
 }
 
 function populateSummary() {
-  const name  = document.getElementById('signup-name')?.value.trim();
+  const name = document.getElementById('signup-name')?.value.trim();
   const email = document.getElementById('signup-email')?.value.trim();
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const avatar = document.getElementById('summary-avatar');
   if (avatar) avatar.textContent = initials;
   const sName = document.getElementById('summary-name');
   const sEmail = document.getElementById('summary-email');
-  if (sName)  sName.textContent  = name;
+  if (sName) sName.textContent = name;
   if (sEmail) sEmail.textContent = email;
 }
 
@@ -287,8 +297,8 @@ const KalyraAuth = {
     return res.data.user;
   },
 
-  async register(name, email, password, phone) {
-    const res = await KalyraAPI.register(name, email, password, phone);
+  async register(name, email, password, phone, otp_token) {
+    const res = await KalyraAPI.register(name, email, password, phone, otp_token);
     KalyraToken.setAccess(res.data.accessToken);
     KalyraToken.setRefresh(res.data.refreshToken);
     KalyraToken.setUser(res.data.user);
@@ -297,7 +307,7 @@ const KalyraAuth = {
   },
 
   async logout() {
-    await KalyraAPI.logout().catch(() => {});
+    await KalyraAPI.logout().catch(() => { });
     KalyraToken.clear();
     window.dispatchEvent(new Event('kalyra:logout'));
     showToast('You have been signed out.', 'info');
@@ -325,7 +335,7 @@ const KalyraAuth = {
 window.handleGoogleResponse = async (response) => {
   try {
     const base64 = response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const user   = JSON.parse(decodeURIComponent(atob(base64).split('').map(c =>
+    const user = JSON.parse(decodeURIComponent(atob(base64).split('').map(c =>
       '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
     await KalyraAuth.loginWithGoogle(user);
     closeAllModals();
@@ -365,9 +375,9 @@ function wireModals() {
 
   // Email + password login
   async function doEmailLogin() {
-    const email    = document.getElementById('emailpw-email')?.value?.trim();
+    const email = document.getElementById('emailpw-email')?.value?.trim();
     const password = document.getElementById('emailpw-password')?.value;
-    const btn      = document.getElementById('btn-emailpw-login');
+    const btn = document.getElementById('btn-emailpw-login');
     if (!email || !password) { showToast('Please enter email and password.', 'error'); return; }
     setLoading(btn, true, 'Signing in…');
     try {
@@ -401,6 +411,10 @@ function wireModals() {
 
   /* ════ SIGNUP MODAL ═══════════════════════════════════════ */
 
+  // OTP flow state (in-memory, not persisted)
+  let _otpToken = null;
+  let _otpCooldownTimer = null;
+
   // Password strength live update
   document.getElementById('signup-password')?.addEventListener('input', e => {
     updatePasswordUI(e.target.value);
@@ -421,30 +435,124 @@ function wireModals() {
     if (validateStep1()) SignupFlow.goTo(2);
   });
   // Allow Enter to proceed
-  ['signup-name','signup-email','signup-phone'].forEach(id => {
+  ['signup-name', 'signup-email', 'signup-phone'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('signup-next-1')?.click();
     });
   });
 
-  // Step 2 → Step 3
-  document.getElementById('signup-next-2')?.addEventListener('click', () => {
-    if (validateStep2()) { populateSummary(); SignupFlow.goTo(3); }
+  // Step 2 → Step 3 (send OTP)
+  document.getElementById('signup-next-2')?.addEventListener('click', async () => {
+    if (!validateStep2()) return;
+    const btn = document.getElementById('signup-next-2');
+    const email = document.getElementById('signup-email')?.value.trim();
+    const name = document.getElementById('signup-name')?.value.trim();
+    setLoading(btn, true, 'Sending code…');
+    try {
+      const res = await KalyraAPI.sendOtp(email, name);
+      // In dev mode, log OTP to console for easy testing
+      if (res.data?._dev_otp) {
+        console.log(`%c[DEV] OTP for ${email}: ${res.data._dev_otp}`, 'background:#B89B71;color:#fff;padding:4px 8px;border-radius:4px;font-weight:bold;');
+        showToast(`[DEV] OTP: ${res.data._dev_otp}`, 'info');
+      } else {
+        showToast('Verification code sent! Check your inbox.', 'success');
+      }
+      SignupFlow.goTo(3);
+      // Show which email the code was sent to
+      const dispEl = document.getElementById('otp-email-display');
+      if (dispEl) dispEl.textContent = email;
+      document.getElementById('signup-otp')?.focus();
+      _startOtpCountdown();
+    } catch (err) {
+      showToast(err.message || 'Failed to send verification code.', 'error');
+    } finally {
+      setLoading(btn, false);
+    }
   });
-  ['signup-password','signup-confirm'].forEach(id => {
+  ['signup-password', 'signup-confirm'].forEach(id => {
     document.getElementById(id)?.addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('signup-next-2')?.click();
     });
   });
 
+  // OTP countdown helper
+  function _startOtpCountdown() {
+    const resendBtn = document.getElementById('otp-resend-btn');
+    const countdownEl = document.getElementById('otp-countdown');
+    if (!resendBtn || !countdownEl) return;
+    resendBtn.disabled = true;
+    let secs = 60;
+    countdownEl.textContent = `(${secs}s)`;
+    clearInterval(_otpCooldownTimer);
+    _otpCooldownTimer = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(_otpCooldownTimer);
+        resendBtn.disabled = false;
+        countdownEl.textContent = '';
+      } else {
+        countdownEl.textContent = `(${secs}s)`;
+      }
+    }, 1000);
+  }
+
+  // Resend OTP
+  document.getElementById('otp-resend-btn')?.addEventListener('click', async () => {
+    const email = document.getElementById('signup-email')?.value.trim();
+    const name = document.getElementById('signup-name')?.value.trim();
+    const btn = document.getElementById('otp-resend-btn');
+    btn.disabled = true;
+    try {
+      const res = await KalyraAPI.sendOtp(email, name);
+      if (res.data?._dev_otp) {
+        console.log(`%c[DEV] OTP for ${email}: ${res.data._dev_otp}`, 'background:#B89B71;color:#fff;padding:4px 8px;border-radius:4px;font-weight:bold;');
+        showToast(`[DEV] New OTP: ${res.data._dev_otp}`, 'info');
+      } else {
+        showToast('New code sent! Check your inbox.', 'success');
+      }
+      _startOtpCountdown();
+    } catch (err) {
+      showToast(err.message || 'Failed to resend code.', 'error');
+      btn.disabled = false;
+    }
+  });
+
+  // Step 3: Verify OTP → Step 4
+  async function doVerifyOtp() {
+    const otp = document.getElementById('signup-otp')?.value.trim();
+    const email = document.getElementById('signup-email')?.value.trim();
+    const btn = document.getElementById('signup-next-3');
+    clearError('err-otp');
+    if (!otp || otp.length !== 6 || !/^\d+$/.test(otp)) {
+      setError('err-otp', 'Please enter the 6-digit code from your email.');
+      return;
+    }
+    setLoading(btn, true, 'Verifying…');
+    try {
+      const res = await KalyraAPI.verifyOtp(email, otp);
+      _otpToken = res.data.otp_token;
+      populateSummary();
+      SignupFlow.goTo(4);
+    } catch (err) {
+      setError('err-otp', err.message || 'Invalid code. Please try again.');
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+  document.getElementById('signup-next-3')?.addEventListener('click', doVerifyOtp);
+  document.getElementById('signup-otp')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doVerifyOtp();
+  });
+
   // Back buttons
   document.getElementById('signup-back-1')?.addEventListener('click', () => SignupFlow.goTo(1));
   document.getElementById('signup-back-2')?.addEventListener('click', () => SignupFlow.goTo(2));
+  document.getElementById('signup-back-3')?.addEventListener('click', () => SignupFlow.goTo(3));
 
   // Google in signup modal
   document.getElementById('signup-google-btn')?.addEventListener('click', _handleGoogleClick);
 
-  // Final submit
+  // Final submit (Step 4)
   document.getElementById('signup-submit-btn')?.addEventListener('click', async () => {
     clearError('err-terms');
     const apiErr = document.getElementById('signup-api-error');
@@ -455,17 +563,22 @@ function wireModals() {
       return;
     }
 
-    const name  = document.getElementById('signup-name')?.value.trim();
+    if (!_otpToken) {
+      showToast('Email verification missing. Please go back and verify your email.', 'error');
+      return;
+    }
+
+    const name = document.getElementById('signup-name')?.value.trim();
     const email = document.getElementById('signup-email')?.value.trim();
-    const pw    = document.getElementById('signup-password')?.value;
+    const pw = document.getElementById('signup-password')?.value;
     const phone = document.getElementById('signup-phone')?.value.trim();
-    const btn   = document.getElementById('signup-submit-btn');
+    const btn = document.getElementById('signup-submit-btn');
 
     setLoading(btn, true, 'Creating account…');
     if (apiErr) apiErr.style.display = 'none';
 
     try {
-      const user = await KalyraAuth.register(name, email, pw, phone || null);
+      const user = await KalyraAuth.register(name, email, pw, phone || null, _otpToken);
       showToast(`Welcome to Kalyra, ${user.name}! 🎉`, 'success');
       closeAllModals();
       SignupFlow.reset();
@@ -562,7 +675,7 @@ function _handleGoogleClick() {
 }
 
 /* ─── Global events ─────────────────────────────────────── */
-window.addEventListener('kalyra:login',  () => updateNavbarUserState());
+window.addEventListener('kalyra:login', () => updateNavbarUserState());
 window.addEventListener('kalyra:logout', () => updateNavbarUserState());
 
 /* ─── Auto-init ─────────────────────────────────────────── */
@@ -582,7 +695,7 @@ if (document.readyState === 'loading') {
   initAuth();
 }
 
-window.KalyraAuth  = KalyraAuth;
-window.showToast   = showToast;
+window.KalyraAuth = KalyraAuth;
+window.showToast = showToast;
 window.updateNavbarUserState = updateNavbarUserState;
-window.SignupFlow  = SignupFlow;
+window.SignupFlow = SignupFlow;

@@ -4,7 +4,9 @@
  * Base URL auto-detects dev vs prod.
  */
 
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000/api/v1'
+  : 'https://api.kalyraa.com/api/v1';
 const TOKEN_KEY  = 'kalyra_access_token';
 const REFRESH_KEY = 'kalyra_refresh_token';
 const USER_KEY   = 'kalyra_user';
@@ -79,11 +81,17 @@ async function tryRefreshToken() {
 /* ─── Public API methods ─────────────────────────────────── */
 const KalyraAPI = {
   // Auth
-  async register(name, email, password, phone) {
-    const body = { name, email, password };
+  async register(name, email, password, phone, otp_token) {
+    const body = { name, email, password, otp_token };
     const cleanPhone = (phone || '').trim();
     if (cleanPhone) body.phone = cleanPhone;   // only include when non-empty
     return apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(body) });
+  },
+  async sendOtp(email, name = '') {
+    return apiFetch('/auth/send-otp', { method: 'POST', body: JSON.stringify({ email, name }) });
+  },
+  async verifyOtp(email, otp) {
+    return apiFetch('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) });
   },
   async login(email, password) {
     try {

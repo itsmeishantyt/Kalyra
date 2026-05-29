@@ -1,5 +1,5 @@
 // The CATALOG is now managed in scripts/catalog.js, but storefront now uses API directly.
-const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'http://localhost:3000') + url : url;
+const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'https://api.kalyraa.com') + url : url;
 
 // Component Loading System
 const components = {
@@ -47,7 +47,7 @@ async function loadComponent(elementId, filePath) {
 }
 
 async function loadAllComponents() {
-    const isShopPage = window.location.href.toLowerCase().includes('shop.html') || !!document.getElementById('shop-items-container');
+    const isShopPage = window.location.href.toLowerCase().includes('shop.html') || window.location.pathname.endsWith('/shop') || !!document.getElementById('shop-items-container');
 
     console.log('Loading components...', { pathname: window.location.pathname, isShopPage });
 
@@ -142,7 +142,7 @@ async function loadAllComponents() {
             let grid = document.getElementById('shop-items-container');
             // Check within the #shop container specifically if global ID lookup fails
             if (!grid) grid = document.getElementById('shop')?.querySelector('#shop-items-container') || document.getElementById('shop')?.querySelector('.products-grid');
-            
+
             if (grid) {
                 if (grid.id !== 'shop-items-container') grid.id = 'shop-items-container'; // Ensure ID for later use
                 initShopFilters();
@@ -156,7 +156,7 @@ async function loadAllComponents() {
         waitForGrid();
     }
 
-    const isProductPage = window.location.pathname.includes('product.html') || window.location.href.includes('product.html');
+    const isProductPage = window.location.pathname.includes('product.html') || window.location.pathname.endsWith('/product') || window.location.href.includes('product.html');
     if (isProductPage) {
         console.log('Detected Product Page, initializing details...');
         await initProductPage();
@@ -164,8 +164,42 @@ async function loadAllComponents() {
 
     if (window.KalyraCart) window.KalyraCart.init();
     
+    // Load dynamic homepage CMS settings
+    await loadDynamicHomepageContent();
+
     // Always run scroll reveal last
     initScrollReveal();
+}
+
+async function loadDynamicHomepageContent() {
+    try {
+        const host = window.API_HOST || 'https://api.kalyraa.com';
+        const res = await fetch(`${host}/api/v1/settings`);
+        const data = await res.json();
+        if (data.success && data.data) {
+            const settings = data.data;
+
+            // Update Hero Banner
+            const heroTitle = document.querySelector('.hero-title');
+            const heroSub = document.querySelector('.hero-sub');
+            const heroImg = document.querySelector('.hero-right img');
+            
+            if (heroTitle && settings.hero_title) heroTitle.innerHTML = settings.hero_title;
+            if (heroSub && settings.hero_sub) heroSub.textContent = settings.hero_sub;
+            if (heroImg && settings.hero_image_url) heroImg.src = getImageUrl(settings.hero_image_url);
+
+            // Update CTA Banner
+            const ctaTitle = document.querySelector('.cta-title');
+            const ctaImages = document.querySelectorAll('.cta-img img');
+            
+            if (ctaTitle && settings.cta_title) ctaTitle.innerHTML = settings.cta_title;
+            if (ctaImages.length > 0 && settings.cta_image_1) ctaImages[0].src = getImageUrl(settings.cta_image_1);
+            if (ctaImages.length > 1 && settings.cta_image_2) ctaImages[1].src = getImageUrl(settings.cta_image_2);
+            if (ctaImages.length > 2 && settings.cta_image_3) ctaImages[2].src = getImageUrl(settings.cta_image_3);
+        }
+    } catch (e) {
+        console.error('Error loading dynamic homepage content:', e);
+    }
 }
 
 function initShopFilters() {
@@ -241,10 +275,10 @@ function initShopFilters() {
             const card = document.createElement('div');
             card.className = 'product-card shop-card-animate';
             card.style.animationDelay = `${index * 0.05}s`;
-            
+
             // Format price
             const price = typeof p.price === 'number' ? p.price : 0;
-            
+
             card.innerHTML = `
                 <div class="product-img-wrap">
                     <img src="${getImageUrl(p.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
@@ -265,22 +299,26 @@ function initShopFilters() {
             if (filters.categories.length > 0) query.category = filters.categories.join(',');
             if (filters.maxPrice < Number.MAX_VALUE) query.max_price = filters.maxPrice;
             if (filters.searchTerm) query.search = filters.searchTerm;
-            if (filters.sortBy === 'price-low') { query.sort = 'price'; query.order = 'asc'; }
-            if (filters.sortBy === 'price-high') { query.sort = 'price'; query.order = 'desc'; }
+            if (filters.sortBy === 'price-low') query.sort = 'price_asc';
+            if (filters.sortBy === 'price-high') query.sort = 'price_desc';
+            if (filters.sortBy === 'best-selling') query.sort = 'best_selling';
+            if (filters.sortBy === 'trending') query.sort = 'trending';
+            if (filters.sortBy === 'top-rated') query.sort = 'top_rated';
+            if (filters.sortBy === 'new-arrivals') query.sort = 'new_arrivals';
 
             cardsContainer.innerHTML = '<div class="loader" style="grid-column: 1/-1; text-align: center; padding: 50px;">Loading products...</div>';
-            
+
             const response = await window.KalyraAPI.getProducts(query);
             let products = response.data || [];
             if (filters.sortBy === 'alphabet-az') products.sort((a, b) => a.name.localeCompare(b.name));
             if (filters.sortBy === 'alphabet-za') products.sort((a, b) => b.name.localeCompare(a.name));
-            
+
             // Limit to 4 products on the home page
-            const isShopPage = window.location.href.toLowerCase().includes('shop.html');
+            const isShopPage = window.location.href.toLowerCase().includes('shop.html') || window.location.pathname.endsWith('/shop');
             if (!isShopPage) {
                 products = products.slice(0, 4);
             }
-            
+
             renderProducts(products);
         } catch (error) {
             console.error('Failed to fetch products:', error);
@@ -473,7 +511,7 @@ function initMobileMenu() {
     // Mobile Drawer Dropdown Toggle
     const dropdownToggle = document.querySelector('.drawer-dropdown-toggle');
     const submenu = document.querySelector('.drawer-submenu');
-    
+
     dropdownToggle?.addEventListener('click', (e) => {
         e.stopPropagation();
         dropdownToggle.classList.toggle('active');
@@ -579,35 +617,47 @@ function initModals() {
 }
 
 // Google OAuth Response Handler
-window.handleGoogleResponse = (response) => {
-    try {
-        // Decode the JWT token (Base64) to get user info
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
+if (!window.handleGoogleResponse) {
+    window.handleGoogleResponse = async (response) => {
+        try {
+            // Decode the JWT token (Base64) to get user info
+            const base64Url = response.credential.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
 
-        const user = JSON.parse(jsonPayload);
-        console.log('Google User Authenticated:', user);
-        
-        alert(`Welcome, ${user.name}! You have successfully logged in via Google.`);
-        
-        // Close modal and update UI
-        const loginModal = document.getElementById('login-modal');
-        const loginBackdrop = document.getElementById('login-backdrop');
-        loginModal?.classList.remove('active');
-        loginBackdrop?.classList.remove('active');
-        document.body.style.overflow = '';
-        
-        // Optional: Store user info or update navbar
-        // localStorage.setItem('user', JSON.stringify(user));
-        
-    } catch (error) {
-        console.error('Error handling Google response:', error);
-        alert('An error occurred during Google Sign-In.');
-    }
-};
+            const user = JSON.parse(jsonPayload);
+            console.log('Google User Authenticated:', user);
+
+            if (window.KalyraAuth?.loginWithGoogle) {
+                await window.KalyraAuth.loginWithGoogle(user);
+                if (window.closeAllModals) window.closeAllModals();
+                if (window.showToast) {
+                    window.showToast(`Welcome, ${user.name}! 🎉`, 'success');
+                } else {
+                    alert(`Welcome, ${user.name}! You have successfully logged in via Google.`);
+                }
+                if (window.updateNavbarUserState) window.updateNavbarUserState();
+            } else {
+                alert(`Welcome, ${user.name}! You have successfully logged in via Google.`);
+                // Close modal and update UI
+                const loginModal = document.getElementById('login-modal');
+                const loginBackdrop = document.getElementById('login-backdrop');
+                loginModal?.classList.remove('active');
+                loginBackdrop?.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        } catch (error) {
+            console.error('Error handling Google response:', error);
+            if (window.showToast) {
+                window.showToast('Google sign-in failed. Please try again.', 'error');
+            } else {
+                alert('An error occurred during Google Sign-In.');
+            }
+        }
+    };
+}
 
 function initGlobalSearch() {
     const desktopInput = document.getElementById('desktop-search-input');
@@ -641,7 +691,7 @@ function initGlobalSearch() {
     let searchTimeout = null;
     const renderAutocomplete = async (input, container) => {
         const query = input.value.trim();
-        
+
         if (query.length < 2) {
             container.classList.remove('active');
             container.innerHTML = '';
@@ -738,7 +788,7 @@ async function initProductPage() {
         if (!container) return;
 
         container.innerHTML = '<div class="loader" style="padding: 100px; text-align: center;">Loading product details...</div>';
-        
+
         let product = null;
         if (productId) {
             try {
@@ -761,7 +811,7 @@ async function initProductPage() {
                 description: urlParams.get('desc') || 'A unique handcrafted piece from the Kalyra collection.'
             };
         }
-        
+
         if (!product) {
             container.innerHTML = `
                 <div class="product-not-found" style="text-align:center; padding: 100px 20px;">
@@ -772,10 +822,10 @@ async function initProductPage() {
             `;
             return;
         }
-        
+
         await renderPDP(container, product);
         initScrollReveal();
-        
+
     } catch (error) {
         console.error('Error in initProductPage:', error);
     }
@@ -784,15 +834,15 @@ async function initProductPage() {
 async function renderPDP(container, product) {
     // Set document title
     document.title = `${product.name} — Kalyra Boutique`;
-    
+
     // Related products (prioritize same category)
     const isApparel = product.category === 'apparel';
     let related = [];
-    
+
     try {
         const response = await window.KalyraAPI.getProducts({ category: product.category, limit: 5 });
         related = (response.data || []).filter(p => String(p.id) !== String(product.id)).slice(0, 4);
-        
+
         if (related.length < 4) {
             const extraRes = await window.KalyraAPI.getProducts({ limit: 10 });
             const others = (extraRes.data || []).filter(p => String(p.id) !== String(product.id) && p.category !== product.category);
@@ -802,7 +852,7 @@ async function renderPDP(container, product) {
     } catch (err) {
         console.error('Failed to load related products', err);
     }
-    
+
     const prodImg = getImageUrl(product.image_url) || product.img || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product';
 
     container.innerHTML = `
@@ -961,7 +1011,7 @@ async function renderPDP(container, product) {
     // Toggle Zoom in Lightbox (Desktop only)
     lbImg?.addEventListener('click', (e) => {
         if (window.innerWidth <= 1024) return;
-        
+
         lbImg.classList.toggle('is-zoomed');
         if (!lbImg.classList.contains('is-zoomed')) {
             lbImg.style.transform = '';
@@ -981,7 +1031,7 @@ async function renderPDP(container, product) {
         const rect = lbImg.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
+
         lbImg.style.transformOrigin = `${x}% ${y}%`;
         lbImg.style.transform = 'scale(2.5)';
     }
@@ -1014,12 +1064,12 @@ async function renderPDP(container, product) {
             btn.parentElement.classList.toggle('active');
         });
     });
-    
+
     // Action Logic — dispatch pdp-ready so cart.js wires the button
     window.dispatchEvent(new CustomEvent('kalyra:pdp-ready', { detail: { product } }));
-    
+
     document.getElementById('pdp-buy-now')?.addEventListener('click', async () => {
-        const selectedSize  = document.querySelector('.size-pill.active')?.textContent || null;
+        const selectedSize = document.querySelector('.size-pill.active')?.textContent || null;
         const selectedColor = document.querySelector('.color-pill.active')?.textContent || null;
         if (product) {
             await (window.KalyraCart?.addItem(product.id, 1, selectedSize, selectedColor, {
@@ -1028,11 +1078,11 @@ async function renderPDP(container, product) {
         }
         window.location.href = 'cart.html';
     });
-    
+
     // Custom Cursor Logic for Desktop
     const mainImgContainer = document.querySelector('.pdp-main-img');
     const customCursor = document.getElementById('pdp-custom-cursor');
-    
+
     if (mainImgContainer && customCursor && window.innerWidth > 1024) {
         mainImgContainer.addEventListener('mouseenter', () => {
             customCursor.style.opacity = '1';
@@ -1067,7 +1117,7 @@ async function renderPDP(container, product) {
 
     // Initial Reviews Render
     renderReviews(product);
-    
+
     // Setup Gallery Arrows
     setupPDPInteractions();
 }
@@ -1087,10 +1137,10 @@ function saveReview(productId, review) {
 function renderReviews(product) {
     const container = document.getElementById(`reviews-container-${product.id}`);
     if (!container) return;
-    
+
     const reviews = getReviews(product.id);
     const count = reviews.length;
-    
+
     if (count === 0) {
         container.innerHTML = `
             <div class="reviews-header-centered">
@@ -1111,13 +1161,13 @@ function renderReviews(product) {
     } else {
         const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / count;
         const breakdown = [0, 0, 0, 0, 0]; // 5, 4, 3, 2, 1
-        reviews.forEach(r => { if(r.rating >= 1 && r.rating <= 5) breakdown[5-r.rating]++; });
-        
+        reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) breakdown[5 - r.rating]++; });
+
         container.innerHTML = `
             <div class="reviews-header-centered">
                 <h2 class="reviews-title">Customer Reviews</h2>
                 <div class="overall-rating">
-                    <div class="stars">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5-Math.round(avg))}</div>
+                    <div class="stars">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))}</div>
                     <span class="rating-text">${avg.toFixed(2)} out of 5</span>
                 </div>
                 <p class="based-on">Based on ${count} review${count > 1 ? 's' : ''} <span class="verified-check">✓</span></p>
@@ -1127,8 +1177,8 @@ function renderReviews(product) {
                 <div class="reviews-stats">
                     ${breakdown.map((c, i) => `
                         <div class="rating-bar-row">
-                            <div class="stars-label">${'★'.repeat(5-i)}${'☆'.repeat(i)}</div>
-                            <div class="progress-bar"><div class="progress" style="width: ${(c/count*100).toFixed(0)}%;"></div></div>
+                            <div class="stars-label">${'★'.repeat(5 - i)}${'☆'.repeat(i)}</div>
+                            <div class="progress-bar"><div class="progress" style="width: ${(c / count * 100).toFixed(0)}%;"></div></div>
                             <div class="count-label">${c}</div>
                         </div>
                     `).join('')}
@@ -1140,7 +1190,7 @@ function renderReviews(product) {
                                 <span class="review-author">${r.name}</span>
                                 <span class="review-date">${new Date(r.date).toLocaleDateString()}</span>
                             </div>
-                            <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                            <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
                             <h4 class="review-title">${r.title || 'Review'}</h4>
                             <p class="review-text">${r.text}</p>
                         </div>
@@ -1157,10 +1207,10 @@ function renderReviews(product) {
         // Pre-render form for smooth transition
         showReviewForm(product, true);
     }
-    
+
     const writeBtn = document.getElementById('btn-write-review');
     const formWrap = document.getElementById('review-form-container');
-    
+
     writeBtn?.addEventListener('click', () => {
         formWrap.classList.toggle('active');
         if (formWrap.classList.contains('active')) {
@@ -1177,7 +1227,7 @@ function renderReviews(product) {
 function showReviewForm(product, silent = false) {
     const formWrap = document.getElementById('review-form-container');
     if (!formWrap) return;
-    
+
     formWrap.innerHTML = `
         <div class="review-form-card">
             <h2 class="reviews-title" style="margin-bottom: 30px;">Write a Review</h2>
@@ -1236,13 +1286,13 @@ function showReviewForm(product, silent = false) {
         formWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100); 
     */
-    
+
     // Handle Cancel button inside form
     formWrap.querySelector('#cancel-review-form')?.addEventListener('click', () => {
         const writeBtn = document.getElementById('btn-write-review');
         if (writeBtn) writeBtn.click(); // Reuse existing toggle logic
     });
-    
+
     let selectedRating = 5;
     const stars = formWrap.querySelectorAll('.star-rating-select span');
     stars.forEach(s => {
@@ -1259,19 +1309,19 @@ function showReviewForm(product, silent = false) {
         const name = document.getElementById('rev-name').value || 'Anonymous';
         const email = document.getElementById('rev-email').value;
         const text = document.getElementById('rev-text').value;
-        
+
         if (!text) return alert('Please write a review text');
         if (!email) return alert('Please provide your email');
-        
+
         saveReview(product.id, {
             title,
-            name, 
+            name,
             email,
-            text, 
-            rating: selectedRating, 
+            text,
+            rating: selectedRating,
             date: new Date().toISOString()
         });
-        
+
         alert('Thank you for your review!');
         renderReviews(product);
     });
@@ -1286,7 +1336,7 @@ function changePDPImage(src, thumb) {
             mainImg.style.opacity = '1';
         }, 200);
     }
-    
+
     document.querySelectorAll('.pdp-thumbnails .thumb').forEach(t => t.classList.remove('active'));
     thumb.classList.add('active');
 }
@@ -1295,10 +1345,10 @@ function navigatePDP(direction) {
     const thumbs = Array.from(document.querySelectorAll('.pdp-thumbnails .thumb'));
     const activeIndex = thumbs.findIndex(t => t.classList.contains('active'));
     let nextIndex = activeIndex + direction;
-    
+
     if (nextIndex < 0) nextIndex = thumbs.length - 1;
     if (nextIndex >= thumbs.length) nextIndex = 0;
-    
+
     thumbs[nextIndex].click();
 }
 
@@ -1308,7 +1358,7 @@ function setupPDPInteractions() {
         e.stopPropagation();
         navigatePDP(-1);
     });
-    
+
     document.getElementById('pdp-nav-next')?.addEventListener('click', (e) => {
         e.stopPropagation();
         navigatePDP(1);
@@ -1318,12 +1368,12 @@ function setupPDPInteractions() {
 function initGoogleAuth() {
     if (typeof google !== 'undefined') {
         google.accounts.id.initialize({
-            client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Replace with actual Client ID
+            client_id: "349751177817-oo4elddbeu78b35j34bo3uj88n4f8did.apps.googleusercontent.com", // Replace with actual Client ID
             callback: window.handleGoogleResponse,
             auto_select: false,
             cancel_on_tap_outside: true
         });
-        
+
         // Optionally render the official button as well
         const googleBtnContainer = document.getElementById('btn-google-login');
         if (googleBtnContainer) {
@@ -1352,11 +1402,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllComponents().then(() => {
         console.log('Boot sequence complete.');
         initGoogleAuth();
-        
+
         // Final check for page types
         const path = window.location.pathname;
-        const isProductPage = path.includes('product.html');
-        
+        const isProductPage = path.includes('product.html') || path.endsWith('/product');
+
         // initShopFilters() is already called in loadAllComponents via waitForGrid()
         // initApparelPage is no longer needed.
         if (isProductPage) initProductPage();

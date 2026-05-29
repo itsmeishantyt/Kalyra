@@ -16,11 +16,13 @@
         <div class="step-dot" data-step="2"></div>
         <div class="step-line"></div>
         <div class="step-dot" data-step="3"></div>
+        <div class="step-line"></div>
+        <div class="step-dot" data-step="4"></div>
     </div>
 
     <!-- ── STEP 1: Name + Email ── -->
     <div id="signup-step-1" class="signup-step active">
-        <div class="signup-step-label">Step 1 of 3 — Your details</div>
+        <div class="signup-step-label">Step 1 of 4 — Your details</div>
 
         <div class="login-field">
             <label class="login-label" for="signup-name">FULL NAME</label>
@@ -60,7 +62,7 @@
 
     <!-- ── STEP 2: Password ── -->
     <div id="signup-step-2" class="signup-step" hidden>
-        <div class="signup-step-label">Step 2 of 3 — Secure your account</div>
+        <div class="signup-step-label">Step 2 of 4 — Secure your account</div>
 
         <div class="login-field">
             <label class="login-label" for="signup-password">CREATE PASSWORD</label>
@@ -113,9 +115,48 @@
         </div>
     </div>
 
-    <!-- ── STEP 3: Consent + Submit ── -->
+    <!-- ── STEP 3: Email OTP Verification ── -->
     <div id="signup-step-3" class="signup-step" hidden>
-        <div class="signup-step-label">Step 3 of 3 — Almost there!</div>
+        <div class="signup-step-label">Step 3 of 4 — Verify your email</div>
+
+        <div style="text-align:center;margin-bottom:22px;">
+            <div style="width:56px;height:56px;border-radius:50%;background:#fdf8f2;border:2px solid #B89B71;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B89B71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <p style="font-size:14px;color:#555;line-height:1.6;margin:0;">
+                We sent a 6-digit code to<br>
+                <strong id="otp-email-display" style="color:#1a1a1a;"></strong>
+            </p>
+        </div>
+
+        <div class="login-field">
+            <label class="login-label" for="signup-otp">VERIFICATION CODE</label>
+            <input type="text" id="signup-otp" class="login-input"
+                   placeholder="Enter 6-digit code"
+                   inputmode="numeric" autocomplete="one-time-code"
+                   maxlength="6"
+                   style="font-size:22px;letter-spacing:0.18em;text-align:center;font-weight:700;font-family:'Courier New',monospace;">
+            <span class="field-error" id="err-otp"></span>
+        </div>
+
+        <div style="text-align:center;margin-top:14px;font-size:13px;color:#888;">
+            Didn't receive it?
+            <button type="button" id="otp-resend-btn"
+                    style="background:none;border:none;color:#B89B71;font-weight:600;cursor:pointer;font-size:13px;font-family:inherit;padding:0;text-decoration:underline;">
+                Resend
+            </button>
+            <span id="otp-countdown" style="color:#bbb;margin-left:4px;"></span>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:22px;align-items:center;">
+            <button type="button" class="login-back-btn" id="signup-back-2" style="flex:0 0 auto;width:auto;display:inline-flex;margin-top:0;padding:0 18px;text-decoration:underline;">← Back</button>
+            <button type="button" class="login-submit" id="signup-next-3" style="flex:1;margin-top:0;">Verify →</button>
+        </div>
+    </div>
+
+    <!-- ── STEP 4: Consent + Submit ── -->
+    <div id="signup-step-4" class="signup-step" hidden>
+        <div class="signup-step-label">Step 4 of 4 — Almost there!</div>
 
         <!-- Summary card -->
         <div class="signup-summary-card" id="signup-summary-card">
@@ -162,7 +203,7 @@
         </button>
 
         <div style="display:flex;gap:10px;margin-top:20px;align-items:center;">
-            <button type="button" class="login-back-btn" id="signup-back-2" style="flex:0 0 auto;width:auto;display:inline-flex;margin-top:0;text-decoration:underline;">← Back</button>
+            <button type="button" class="login-back-btn" id="signup-back-3" style="flex:0 0 auto;width:auto;display:inline-flex;margin-top:0;text-decoration:underline;">← Back</button>
             <button type="button" class="login-submit" id="signup-submit-btn" style="flex:1;margin-top:0;">
                 Create Account
             </button>
