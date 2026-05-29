@@ -3175,6 +3175,38 @@ footer {
 
 
 @media (max-width: 640px) {
+  /* ── CTA banner: restore images as a horizontal scroll strip ── */
+  .cta-banner {
+    margin: 0 16px 60px;
+    padding: 36px 24px 28px;
+    gap: 24px;
+  }
+
+  .cta-images {
+    display: flex;               /* override the 1024px display:none */
+    flex-direction: row;
+    gap: 10px;
+    height: 160px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    /* hide scrollbar visually */
+    scrollbar-width: none;
+  }
+
+  .cta-images::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cta-img {
+    flex: 0 0 120px;             /* fixed width, no shrink */
+    height: 100%;
+    border-radius: 12px;
+    scroll-snap-align: start;
+    margin-top: 0 !important;   /* reset staggered offsets */
+  }
+
   .products-grid {
     grid-template-columns: 1fr;
   }
