@@ -917,7 +917,7 @@ nav.scrolled {
 
 /* ── ABOUT ── */
 .about {
-  padding: 160px 100px 60px;
+  padding: 160px 100px;
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 80px;
@@ -2118,7 +2118,7 @@ nav.scrolled {
 
 /* ── FAQ ── */
 .faq {
-  padding: 60px 100px 160px;
+  padding: 160px 100px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 80px;
@@ -3116,7 +3116,6 @@ footer {
   .about {
     grid-template-columns: 1fr;
     gap: 24px;
-    padding-bottom: 40px;
   }
 
   .products-grid {
@@ -3148,7 +3147,6 @@ footer {
   .faq {
     grid-template-columns: 1fr;
     gap: 40px;
-    padding-top: 40px;
   }
 
   .cta-banner {
