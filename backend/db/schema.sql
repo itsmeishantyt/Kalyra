@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS products (
     description     TEXT,
     sku             TEXT    UNIQUE,
     category        TEXT,
+    product_type    TEXT    DEFAULT 'shop' CHECK(product_type IN ('shop', 'apparel')),
     tags            TEXT    DEFAULT '[]',   -- JSON array stored as text
     price           REAL    NOT NULL CHECK(price >= 0),
     discount_pct    REAL    NOT NULL DEFAULT 0

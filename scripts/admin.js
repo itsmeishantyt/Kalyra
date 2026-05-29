@@ -366,6 +366,8 @@ function openAddProductModal() {
     document.getElementById('modal-title').textContent = 'Add New Product';
     document.getElementById('product-form').reset();
     document.getElementById('product-form-id').value = '';
+    document.getElementById('pf-type').value = 'shop';
+    document.getElementById('product-delete-btn').classList.add('hidden');
     document.getElementById('product-submit-btn').textContent = 'Add Product';
     document.getElementById('product-modal-overlay').classList.remove('hidden');
 }
@@ -380,11 +382,13 @@ function openEditProductModal(id) {
     document.getElementById('pf-name').value                  = p.name || '';
     document.getElementById('pf-sku').value                   = p.sku || '';
     document.getElementById('pf-category').value              = p.category || '';
+    document.getElementById('pf-type').value                  = p.product_type || 'shop';
     document.getElementById('pf-price').value                 = p.price || '';
     document.getElementById('pf-discount').value              = p.discount_pct || 0;
     document.getElementById('pf-stock').value                 = p.stock || 0;
     document.getElementById('pf-description').value           = p.description || '';
     document.getElementById('pf-image').value                 = ''; // file inputs can't be pre-filled
+    document.getElementById('product-delete-btn').classList.remove('hidden');
     document.getElementById('product-submit-btn').textContent = 'Save Changes';
     document.getElementById('product-modal-overlay').classList.remove('hidden');
 }
@@ -404,6 +408,7 @@ async function submitProductForm(e) {
     formData.append('name',         document.getElementById('pf-name').value);
     formData.append('sku',          document.getElementById('pf-sku').value);
     formData.append('category',     document.getElementById('pf-category').value);
+    formData.append('product_type', document.getElementById('pf-type').value);
     formData.append('price',        document.getElementById('pf-price').value);
     formData.append('discount_pct', document.getElementById('pf-discount').value || 0);
     formData.append('stock',        document.getElementById('pf-stock').value || 0);
@@ -432,6 +437,36 @@ async function submitProductForm(e) {
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = id ? 'Save Changes' : 'Add Product';
+    }
+}
+
+async function deleteCurrentProduct() {
+    const id = document.getElementById('product-form-id').value;
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
+
+    const deleteBtn = document.getElementById('product-delete-btn');
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting…';
+
+    try {
+        const res = await fetch(`${API}/products/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${adminToken}` },
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast('Product deleted successfully', 'success');
+            closeProductModal();
+            fetchProducts();
+        } else {
+            toast(data.message || 'Failed to delete product', 'error');
+        }
+    } catch {
+        toast('Network error deleting product', 'error');
+    } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete Product';
     }
 }
 

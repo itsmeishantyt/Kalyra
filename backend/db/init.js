@@ -30,6 +30,13 @@ function initDatabase() {
   const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
   database.exec(schema);
 
+  // Alter table to add product_type if it doesn't exist
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN product_type TEXT DEFAULT 'shop'");
+  } catch (err) {
+    // Column already exists, safe to ignore
+  }
+
   return database;
 }
 

@@ -311,14 +311,21 @@ function initShopFilters() {
     const applyFiltersAndSort = async () => {
         try {
             const query = {};
-            const isApparelPage = window.location.pathname.toLowerCase().includes('apparel.html');
+            const isApparelPage = window.location.href.toLowerCase().includes('apparel.html');
+            const isShopPage = window.location.href.toLowerCase().includes('shop.html');
+
+            if (isApparelPage) {
+                query.product_type = 'apparel';
+            } else if (isShopPage) {
+                query.product_type = 'shop';
+            }
 
             if (filters.categories.length > 0) {
                 query.category = filters.categories.join(',');
             } else {
                 if (isApparelPage) {
                     query.category = 'Dresses,Bottomwear,Kurtas,Outerwear,Topwear';
-                } else {
+                } else if (isShopPage) {
                     query.category = 'artistry,mandala,living,wearable,bespoke';
                 }
             }

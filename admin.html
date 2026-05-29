@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -365,6 +365,13 @@
                         <input type="text" id="pf-category" placeholder="e.g. artistry">
                     </div>
                     <div class="form-group">
+                        <label>Product Type *</label>
+                        <select id="pf-type" required>
+                            <option value="shop">Shop Item</option>
+                            <option value="apparel">Apparel</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Price (₹) *</label>
                         <input type="number" id="pf-price" required min="0" step="0.01" placeholder="999">
                     </div>
@@ -386,6 +393,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" id="product-delete-btn" class="btn-danger-sm hidden" onclick="deleteCurrentProduct()">Delete Product</button>
                     <button type="button" class="btn-ghost-sm" onclick="closeProductModal()">Cancel</button>
                     <button type="submit" class="btn-primary btn-sm" id="product-submit-btn">Save Product</button>
                 </div>

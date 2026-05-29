@@ -348,11 +348,14 @@ async function seed() {
 
   const insertProduct = db.prepare(`
     INSERT OR IGNORE INTO products
-      (name, description, sku, category, tags, price, discount_pct, stock, image_url, sizes, colors)
+      (name, description, sku, category, product_type, tags, price, discount_pct, stock, image_url, sizes, colors)
     VALUES
-      (@name, @description, @sku, @category, @tags, @price, @discount_pct, @stock, @image_url, @sizes, @colors)
+      (@name, @description, @sku, @category, @product_type, @tags, @price, @discount_pct, @stock, @image_url, @sizes, @colors)
   `);
-  txn(db, () => products.forEach(p => insertProduct.run(p)));
+  txn(db, () => products.forEach(p => {
+    p.product_type = (p.sku && p.sku.startsWith('KLY-AP')) ? 'apparel' : 'shop';
+    insertProduct.run(p);
+  }));
   console.log(`   ✅  ${products.length} products seeded`);
 
   // ── Promo Codes ────────────────────────────────────────

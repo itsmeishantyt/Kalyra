@@ -69,17 +69,18 @@ router.post('/', requireAdmin(['superadmin', 'manager']), (req, res, next) => {
   upload.single('image')(req, res, (err) => {
     if (err) return next(err);
     try {
-      const { name, description, sku, category, tags, price, discount_pct, stock, sizes, colors } = req.body;
+      const { name, description, sku, category, product_type, tags, price, discount_pct, stock, sizes, colors } = req.body;
       if (!name) return R.badRequest(res, 'Product name required');
       if (!price || isNaN(Number(price))) return R.badRequest(res, 'Valid price required');
 
       const db = getDb();
       const imageUrl = req.file ? `/uploads/products/${req.file.filename}` : null;
+      const pType = (product_type === 'shop' || product_type === 'apparel') ? product_type : 'shop';
 
       const result = db.prepare(`
-        INSERT INTO products (name, description, sku, category, tags, price, discount_pct, stock, image_url, sizes, colors)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(name, description || null, sku || null, category || null, tags || '[]', Number(price), Number(discount_pct) || 0, Number(stock) || 0, imageUrl, sizes || '[]', colors || '[]');
+        INSERT INTO products (name, description, sku, category, product_type, tags, price, discount_pct, stock, image_url, sizes, colors)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(name, description || null, sku || null, category || null, pType, tags || '[]', Number(price), Number(discount_pct) || 0, Number(stock) || 0, imageUrl, sizes || '[]', colors || '[]');
 
       const product = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
       audit(db, req.admin.id, 'CREATE_PRODUCT', 'product', result.lastInsertRowid, { name, price }, req.ip);
@@ -99,19 +100,21 @@ router.put('/:id', requireAdmin(['superadmin', 'manager']), (req, res, next) => 
       const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
       if (!existing) return R.notFound(res, 'Product not found');
 
-      const { name, description, sku, category, tags, price, discount_pct, stock, sizes, colors } = req.body;
+      const { name, description, sku, category, product_type, tags, price, discount_pct, stock, sizes, colors } = req.body;
       const imageUrl = req.file ? `/uploads/products/${req.file.filename}` : existing.image_url;
+      const pType = (product_type === 'shop' || product_type === 'apparel') ? product_type : null;
 
       db.prepare(`
         UPDATE products SET
           name = COALESCE(?, name), description = COALESCE(?, description),
           sku = COALESCE(?, sku), category = COALESCE(?, category),
+          product_type = COALESCE(?, product_type),
           tags = COALESCE(?, tags), price = COALESCE(?, price),
           discount_pct = COALESCE(?, discount_pct), stock = COALESCE(?, stock),
           image_url = ?, sizes = COALESCE(?, sizes), colors = COALESCE(?, colors),
           updated_at = datetime('now')
         WHERE id = ?
-      `).run(name || null, description || null, sku || null, category || null, tags || null, price ? Number(price) : null, discount_pct !== undefined ? Number(discount_pct) : null, stock !== undefined ? Number(stock) : null, imageUrl, sizes || null, colors || null, req.params.id);
+      `).run(name || null, description || null, sku || null, category || null, pType, tags || null, price ? Number(price) : null, discount_pct !== undefined ? Number(discount_pct) : null, stock !== undefined ? Number(stock) : null, imageUrl, sizes || null, colors || null, req.params.id);
 
       const updated = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
       audit(db, req.admin.id, 'UPDATE_PRODUCT', 'product', Number(req.params.id), { name: updated.name }, req.ip);
