@@ -1496,14 +1496,35 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllComponents().then(() => {
         console.log('Boot sequence complete.');
         initGoogleAuth();
-        
+        applyCustomBanner();   // swap hero image if admin has set a custom one
+
         // Final check for page types
         const path = window.location.pathname;
         const isProductPage = path.includes('product.html');
-        
+
         // initShopFilters() is already called in loadAllComponents via waitForGrid()
         // initApparelPage is no longer needed.
         if (isProductPage) initProductPage();
     });
 });
 
+// ── Custom Banner ────────────────────────────────────────────────────
+async function applyCustomBanner() {
+    // Only relevant on the homepage
+    const heroImg = document.querySelector('.hero-right img');
+    if (!heroImg) return;
+
+    try {
+        const host = window.API_HOST || 'http://localhost:3000';
+        const res  = await fetch(`${host}/api/v1/admin/settings`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const url  = data?.data?.bannerImage;
+        if (url) {
+            heroImg.src = `${host}${url}`;
+            heroImg.alt = 'Kalyra Banner';
+        }
+    } catch (_) {
+        // Silently fail — default image remains
+    }
+}

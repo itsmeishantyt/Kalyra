@@ -25,6 +25,7 @@ const adminProductRoutes   = require('./routes/admin/products');
 const adminPromoRoutes     = require('./routes/admin/promocodes');
 const adminOrderRoutes     = require('./routes/admin/orders');
 const adminAnalyticsRoutes = require('./routes/admin/analytics');
+const adminSettingsRoutes  = require('./routes/admin/settings');
 
 const app = express();
 
@@ -94,6 +95,7 @@ app.use(`${adm}/products`,       adminProductRoutes);
 app.use(`${adm}/promocodes`,     adminPromoRoutes);
 app.use(`${adm}/orders`,         adminOrderRoutes);
 app.use(`${adm}/analytics`,      adminAnalyticsRoutes);
+app.use(`${adm}/settings`,       adminSettingsRoutes);
 
 // ── 404 handler ──────────────────────────────────────────
 app.use((req, res) => {
