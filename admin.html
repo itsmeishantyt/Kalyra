@@ -262,11 +262,19 @@
                                 </div>
                             </div>
                             <div class="banner-upload-row">
-                                <label class="banner-upload-label" for="banner-file-desktop">
+                                <label class="banner-upload-label" id="banner-label-desktop" for="banner-file-desktop">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                     Choose Image
                                 </label>
-                                <input type="file" id="banner-file-desktop" accept="image/jpeg,image/png,image/webp" onchange="uploadBannerImage(this, 'desktop')" style="display:none;">
+                                <input type="file" id="banner-file-desktop" accept="image/jpeg,image/png,image/webp" onchange="previewBannerImage(this, 'desktop')" style="display:none;">
+                                
+                                <button class="btn-success btn-sm" id="banner-upload-btn-desktop" onclick="performBannerUpload('desktop')" style="display:none; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 500; border-radius: var(--radius-sm); border: none; cursor: pointer; background: #22c55e; color: white;">
+                                    Upload
+                                </button>
+                                <button class="btn-secondary btn-sm" id="banner-cancel-btn-desktop" onclick="cancelBannerSelect('desktop')" style="display:none; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 500; border-radius: var(--radius-sm); border: 1px solid var(--admin-border); background: var(--admin-bg); cursor: pointer; color: var(--admin-text-main);">
+                                    Cancel
+                                </button>
+                                
                                 <span id="banner-status-desktop" class="banner-status"></span>
                             </div>
                         </div>
@@ -288,11 +296,19 @@
                                 </div>
                             </div>
                             <div class="banner-upload-row">
-                                <label class="banner-upload-label" for="banner-file-mobile">
+                                <label class="banner-upload-label" id="banner-label-mobile" for="banner-file-mobile">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                     Choose Image
                                 </label>
-                                <input type="file" id="banner-file-mobile" accept="image/jpeg,image/png,image/webp" onchange="uploadBannerImage(this, 'mobile')" style="display:none;">
+                                <input type="file" id="banner-file-mobile" accept="image/jpeg,image/png,image/webp" onchange="previewBannerImage(this, 'mobile')" style="display:none;">
+                                
+                                <button class="btn-success btn-sm" id="banner-upload-btn-mobile" onclick="performBannerUpload('mobile')" style="display:none; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 500; border-radius: var(--radius-sm); border: none; cursor: pointer; background: #22c55e; color: white;">
+                                    Upload
+                                </button>
+                                <button class="btn-secondary btn-sm" id="banner-cancel-btn-mobile" onclick="cancelBannerSelect('mobile')" style="display:none; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 500; border-radius: var(--radius-sm); border: 1px solid var(--admin-border); background: var(--admin-bg); cursor: pointer; color: var(--admin-text-main);">
+                                    Cancel
+                                </button>
+                                
                                 <span id="banner-status-mobile" class="banner-status"></span>
                             </div>
                         </div>

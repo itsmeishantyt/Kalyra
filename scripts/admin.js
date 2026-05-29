@@ -614,13 +614,27 @@ async function loadBannerPreview() {
     const desktopImg   = document.getElementById('banner-img-desktop');
     const desktopPh    = document.getElementById('banner-placeholder-desktop');
     const desktopRmBtn = document.getElementById('banner-remove-desktop');
+    const desktopLabel = document.getElementById('banner-label-desktop');
+    const desktopUpBtn = document.getElementById('banner-upload-btn-desktop');
+    const desktopCcBtn = document.getElementById('banner-cancel-btn-desktop');
 
     // Mobile elements
     const mobileImg    = document.getElementById('banner-img-mobile');
     const mobilePh     = document.getElementById('banner-placeholder-mobile');
     const mobileRmBtn  = document.getElementById('banner-remove-mobile');
+    const mobileLabel  = document.getElementById('banner-label-mobile');
+    const mobileUpBtn  = document.getElementById('banner-upload-btn-mobile');
+    const mobileCcBtn  = document.getElementById('banner-cancel-btn-mobile');
 
     const host = 'http://localhost:3000';
+
+    // Reset upload/cancel button visibility on preview load
+    if (desktopUpBtn) desktopUpBtn.style.display = 'none';
+    if (desktopCcBtn) desktopCcBtn.style.display = 'none';
+    if (desktopLabel) desktopLabel.style.display = 'inline-flex';
+    if (mobileUpBtn) mobileUpBtn.style.display = 'none';
+    if (mobileCcBtn) mobileCcBtn.style.display = 'none';
+    if (mobileLabel) mobileLabel.style.display = 'inline-flex';
 
     if (desktopImg && desktopPh && desktopRmBtn) {
         if (settings.desktopBannerImage) {
@@ -649,8 +663,43 @@ async function loadBannerPreview() {
     }
 }
 
-async function uploadBannerImage(input, type = 'desktop') {
+function previewBannerImage(input, type = 'desktop') {
     const file = input.files[0];
+    if (!file) return;
+
+    const img = document.getElementById(`banner-img-${type}`);
+    const ph  = document.getElementById(`banner-placeholder-${type}`);
+    const label = document.getElementById(`banner-label-${type}`);
+    const upBtn = document.getElementById(`banner-upload-btn-${type}`);
+    const ccBtn = document.getElementById(`banner-cancel-btn-${type}`);
+    const rmBtn = document.getElementById(`banner-remove-${type}`);
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (img) {
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            if (ph) ph.style.display = 'none';
+            if (label) label.style.display = 'none';
+            if (upBtn) upBtn.style.display = 'inline-flex';
+            if (ccBtn) ccBtn.style.display = 'inline-flex';
+            if (rmBtn) rmBtn.style.display = 'none'; // hide remove button during preview/selection
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function cancelBannerSelect(type = 'desktop') {
+    const input = document.getElementById(`banner-file-${type}`);
+    if (input) input.value = '';
+    loadBannerPreview();
+}
+
+async function performBannerUpload(type = 'desktop') {
+    const input = document.getElementById(`banner-file-${type}`);
+    const file = input ? input.files[0] : null;
     if (!file) return;
 
     const statusEl = document.getElementById(`banner-status-${type}`);
@@ -690,7 +739,7 @@ async function uploadBannerImage(input, type = 'desktop') {
             statusEl.textContent = 'Upload failed';
         }
     }
-    input.value = '';
+    if (input) input.value = '';
 }
 
 async function removeBannerImage(type = 'desktop') {
