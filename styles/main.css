@@ -3687,6 +3687,18 @@ footer {
   transition: all 0.3s;
 }
 
+.btn-share-icon:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(140, 126, 114, 0.05);
+}
+
+.btn-share-icon.copied {
+  border-color: #27AE60 !important;
+  color: #27AE60 !important;
+  background: rgba(39, 174, 96, 0.05) !important;
+}
+
 .pdp-accordion {
   border-top: 1px solid var(--border);
 }

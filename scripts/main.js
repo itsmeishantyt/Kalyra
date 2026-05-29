@@ -1111,6 +1111,67 @@ async function renderPDP(container, product) {
         }
         window.location.href = 'cart.html';
     });
+
+    // Share Button Event Listener
+    const shareBtn = container.querySelector('.btn-share-icon');
+    shareBtn?.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            
+            // Visual feedback on the button itself
+            shareBtn.classList.add('copied');
+            const originalHTML = shareBtn.innerHTML;
+            shareBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+            
+            // Create a floating premium toast
+            let toast = document.getElementById('kalyra-pdp-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'kalyra-pdp-toast';
+                toast.style.position = 'fixed';
+                toast.style.bottom = '40px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%) translateY(20px)';
+                toast.style.background = 'rgba(30, 26, 23, 0.95)';
+                toast.style.color = '#fff';
+                toast.style.padding = '14px 28px';
+                toast.style.borderRadius = '100px';
+                toast.style.fontFamily = "var(--sans), sans-serif";
+                toast.style.fontSize = '13px';
+                toast.style.letterSpacing = '0.05em';
+                toast.style.boxShadow = '0 10px 40px rgba(0,0,0,0.15)';
+                toast.style.opacity = '0';
+                toast.style.transition = 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)';
+                toast.style.zIndex = '100000';
+                toast.style.display = 'flex';
+                toast.style.alignItems = 'center';
+                toast.style.gap = '10px';
+                document.body.appendChild(toast);
+            }
+            
+            toast.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B89B71" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Link copied to clipboard!</span>
+            `;
+            
+            // Show toast
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+            
+            // Hide toast and reset button state after 2.5s
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(20px)';
+                shareBtn.classList.remove('copied');
+                shareBtn.innerHTML = originalHTML;
+            }, 2500);
+            
+        } catch (err) {
+            console.error('Failed to copy link:', err);
+        }
+    });
     
     // Custom Cursor Logic for Desktop
     const mainImgContainer = document.querySelector('.pdp-main-img');
