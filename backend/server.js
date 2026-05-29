@@ -3,7 +3,7 @@ const http = require('http');
 const app = require('./app');
 const { initDatabase } = require('./db/init');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // Load port from env (restart)
 
 // ── Boot sequence ───────────────────────────────────────────
 (async () => {

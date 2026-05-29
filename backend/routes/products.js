@@ -14,18 +14,26 @@ router.get('/', [
   query('search').optional().trim(),
   query('min_price').optional().isFloat({ min: 0 }).toFloat(),
   query('max_price').optional().isFloat({ min: 0 }).toFloat(),
-  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount']),
+  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount', 'price']),
+  query('order').optional().isIn(['asc', 'desc', 'ASC', 'DESC']),
   query('in_stock').optional().isBoolean().toBoolean(),
 ], validate, (req, res, next) => {
   try {
     const db = getDb();
-    const { page = 1, limit = 20, category, search, min_price, max_price, sort, in_stock } = req.query;
+    const { page = 1, limit = 20, category, search, min_price, max_price, sort, order, in_stock } = req.query;
     const offset = (page - 1) * limit;
 
     let where = ['p.is_active = 1'];
     const params = [];
 
-    if (category)  { where.push('p.category = ?');  params.push(category); }
+    if (category) {
+      const categories = category.split(',').map(c => c.trim()).filter(Boolean);
+      if (categories.length > 0) {
+        const placeholders = categories.map(() => '?').join(',');
+        where.push(`p.category IN (${placeholders})`);
+        params.push(...categories);
+      }
+    }
     if (search)    { where.push('(p.name LIKE ? OR p.description LIKE ?)'); params.push(`%${search}%`, `%${search}%`); }
     if (min_price != null) { where.push('p.price >= ?'); params.push(min_price); }
     if (max_price != null) { where.push('p.price <= ?'); params.push(max_price); }
@@ -38,6 +46,7 @@ router.get('/', [
       price_desc: 'p.price DESC',
       newest:     'p.created_at DESC',
       discount:   'p.discount_pct DESC',
+      price:      `p.price ${String(order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC'}`,
     };
     const orderClause = orderMap[sort] || 'p.created_at DESC';
 

@@ -996,7 +996,7 @@ nav.scrolled {
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 48px 32px;
+  gap: 36px 20px;
   width: 100%;
 }
 
@@ -1012,13 +1012,13 @@ nav.scrolled {
 
 .shop-header-minimal {
   text-align: center;
-  margin-bottom: 80px;
-  padding: 0 24px; /* Reverted to original padding per user request */
+  margin-bottom: 0; /* Removed space below completely */
+  padding: 130px 24px 60px; /* Generous vertical padding to clear navbar and frame title elements gracefully */
   position: relative;
   overflow: hidden;
   isolation: isolate;
   background: linear-gradient(135deg, var(--stitch-parchment) 0%, var(--pure-white) 100%);
-  border-radius: 0 0 40px 40px; /* Sophisticated soft corners */
+  border-radius: 0; /* Flat bottom to merge seamlessly with toolbar */
 }
 
 .shop-title-large,
@@ -1126,7 +1126,7 @@ nav.scrolled {
 
 @media (max-width: 768px) {
   .shop-header-minimal {
-    padding: 0 24px;
+    padding: 100px 24px 40px; /* Adjusted vertical padding for mobile navbar clearance */
   }
   
   .leaf-1 { width: 80px; }
@@ -1601,7 +1601,7 @@ nav.scrolled {
 
 /* ── SHOP CORE ── */
 .shop-section {
-  padding-top: 140px;
+  padding-top: 0; /* Let the header's white background start immediately under the navbar */
   background: var(--off-white);
 }
 
@@ -1626,6 +1626,17 @@ nav.scrolled {
 .product-card {
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  background: var(--pure-white);
+  box-shadow: 0 2px 8px rgba(58, 50, 43, 0.02);
+}
+
+.product-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(58, 50, 43, 0.06);
 }
 
 .product-img-wrap {

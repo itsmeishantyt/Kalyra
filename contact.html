@@ -12,14 +12,14 @@
 <style>
   /* Contact Page Specific Styles */
   .contact-page {
-    padding-top: 68px;
+    padding-top: 0; /* Let the contact hero start immediately under the navbar */
     min-height: 100vh;
   }
   
   /* Hero Section with Golden Leaf Design */
   .contact-hero {
     position: relative;
-    padding: 100px 80px 60px;
+    padding: 130px 24px 60px; /* Same padding size as shop/apparel headers */
     text-align: center;
     background: linear-gradient(135deg, var(--off-white) 0%, var(--pure-white) 100%);
     overflow: hidden;
@@ -366,7 +366,7 @@
   /* Responsive - Tablet */
   @media (max-width: 1024px) {
     .contact-hero {
-      padding: 80px 24px 50px;
+      padding: 110px 24px 50px; /* Adjusted vertical padding for navbar clearance */
     }
     .contact-container {
       grid-template-columns: 1fr;
@@ -389,7 +389,7 @@
   /* Responsive - Mobile */
   @media (max-width: 640px) {
     .contact-hero {
-      padding: 60px 20px 40px;
+      padding: 100px 24px 40px; /* Adjusted vertical padding for navbar clearance */
     }
     .contact-info, .contact-form-wrapper {
       padding: 24px;

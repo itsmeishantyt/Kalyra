@@ -16,7 +16,7 @@ window.CATALOG = [
         category: 'wearable',
         price: 1499,
         style: 'Love & Aesthetic',
-        img: 'assets/anklet-embroidery-tote.jpg',
+        img: '/uploads/products/diy/anklet-embroidery-tote.jpg',
         description: 'A spacious and durable tote bag featuring intricate boho-style embroidery. Perfect for daily use or as a statement accessory.'
     },
     {
@@ -25,7 +25,7 @@ window.CATALOG = [
         category: 'bespoke',
         price: 2499,
         style: 'Bold & Expressive',
-        img: 'assets/black-resin-name-plate.jpg',
+        img: '/uploads/products/diy/black-resin-name-plate.jpg',
         description: 'Sophisticated black resin nameplate with golden accents. Hand-casted to perfection for a premium entrance.'
     },
     {
@@ -34,7 +34,7 @@ window.CATALOG = [
         category: 'bespoke',
         price: 2999,
         style: 'Professional',
-        img: 'assets/ceo-resin-name-plate.jpg',
+        img: '/uploads/products/diy/ceo-resin-name-plate.jpg',
         description: 'Command respect with this executive-grade nameplate. Featuring crystal clear resin and professional typography.'
     },
     {
@@ -43,7 +43,7 @@ window.CATALOG = [
         category: 'bespoke',
         price: 2799,
         style: 'Professional',
-        img: 'assets/doctor-resin-name-plate.jpg',
+        img: '/uploads/products/diy/doctor-resin-name-plate.jpg',
         description: 'Specially designed for medical practitioners. Clean, hygienic look with thematic resin art.'
     },
     {
@@ -52,7 +52,7 @@ window.CATALOG = [
         category: 'artistry',
         price: 3499,
         style: 'Bold & Expressive',
-        img: 'assets/floral-gem-art.jpg',
+        img: '/uploads/products/diy/floral-gem-art.jpg',
         description: 'A mesmerizing arrangement of gem-like floral patterns. Each petal is meticulously crafted for a 3D effect.'
     },
     {
@@ -61,7 +61,7 @@ window.CATALOG = [
         category: 'living',
         price: 899,
         style: 'Calm & Minimal',
-        img: 'assets/floral-resin-coasters.jpg',
+        img: '/uploads/products/diy/floral-resin-coasters.jpg',
         description: 'Set of 4 handcrafted resin coasters with embedded dried spring flowers. Heat resistant and elegant.'
     },
     {
@@ -70,7 +70,7 @@ window.CATALOG = [
         category: 'living',
         price: 999,
         style: 'Love & Aesthetic',
-        img: 'assets/flower-shaped-resin-coasters.jpg',
+        img: '/uploads/products/diy/flower-shaped-resin-coasters.jpg',
         description: 'Flower-shaped coasters that capture the ephemeral beauty of nature in durable resin.'
     },
     {
@@ -79,7 +79,7 @@ window.CATALOG = [
         category: 'mandala',
         price: 1999,
         style: 'Spiritual Mandala',
-        img: 'assets/mandala-art-sketchbook.jpg',
+        img: '/uploads/products/diy/mandala-art-sketchbook.jpg',
         description: 'Intricate spiritual mandala art hand-drawn on high-quality parchment. Brings peace and focus to any space.'
     },
     {
@@ -88,7 +88,7 @@ window.CATALOG = [
         category: 'mandala',
         price: 4299,
         style: 'Spiritual Mandala',
-        img: 'assets/mirror-butterfly-art.jpg',
+        img: '/uploads/products/diy/mirror-butterfly-art.jpg',
         description: 'Transform your reflection with this butterfly-themed mirror border. Combines mirror work with traditional mandala.'
     },
     {
@@ -97,7 +97,7 @@ window.CATALOG = [
         category: 'artistry',
         price: 5999,
         style: 'Bold & Expressive',
-        img: 'assets/mirror-horse-portrait.jpg',
+        img: '/uploads/products/diy/mirror-horse-portrait.jpg',
         description: 'A powerful statement piece. Mirror-worked horse portrait that reflects strength and elegance.'
     },
     {
@@ -106,7 +106,7 @@ window.CATALOG = [
         category: 'bespoke',
         price: 499,
         style: 'Love & Aesthetic',
-        img: 'assets/ocean-keychain-sakshi.jpg',
+        img: '/uploads/products/diy/ocean-keychain-sakshi.jpg',
         description: 'Carry a piece of the ocean with you. Hand-poured resin keychain with realistic wave effects.'
     },
     {
@@ -115,7 +115,7 @@ window.CATALOG = [
         category: 'artistry',
         price: 4899,
         style: 'Love & Aesthetic',
-        img: 'assets/pearl-hat-portrait.jpg',
+        img: '/uploads/products/diy/pearl-hat-portrait.jpg',
         description: 'Graceful portraiture enhanced with real pearl-like embellishments. A timeless piece for sophisticated walls.'
     },
     {
@@ -124,7 +124,7 @@ window.CATALOG = [
         category: 'living',
         price: 1299,
         style: 'Calm & Minimal',
-        img: 'assets/resin-coasters-gold.jpg',
+        img: '/uploads/products/diy/resin-coasters-gold.jpg',
         description: 'Luxury coasters featuring real gold leaf and deep sea blue resin gradients.'
     },
     {
@@ -133,7 +133,7 @@ window.CATALOG = [
         category: 'bespoke',
         price: 2699,
         style: 'Bold & Expressive',
-        img: 'assets/resin-name-plate-shah.jpg',
+        img: '/uploads/products/diy/resin-name-plate-shah.jpg',
         description: 'Traditional family nameplates reimagined in modern resin. Durable and weather-resistant.'
     },
     {
@@ -142,7 +142,7 @@ window.CATALOG = [
         category: 'wearable',
         price: 1399,
         style: 'Love & Aesthetic',
-        img: 'assets/sunflower-tote.jpg',
+        img: '/uploads/products/diy/sunflower-tote.jpg',
         description: 'Vibrant sunflower embroidery on an eco-friendly canvas tote. Brightens up your outfit instantly.'
     },
     {
@@ -151,7 +151,7 @@ window.CATALOG = [
         category: 'bespoke',
         price: 3899,
         style: 'Spiritual Mandala',
-        img: 'assets/wedding-resin-plate.jpg',
+        img: '/uploads/products/diy/wedding-resin-plate.jpg',
         description: 'Preserve your special day with a custom wedding plate. Includes name engraving and thematic resin work.'
     }
 ];
