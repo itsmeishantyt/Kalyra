@@ -460,12 +460,33 @@
             grid-column: 1 / -1;
             text-align: center;
             padding: 80px 24px;
+            background: #fff;
+            border: 1px solid #ece8e0;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(58, 50, 43, 0.02);
+            max-width: 600px;
+            margin: 40px auto 0;
+            width: 100%;
         }
 
-        .cart-empty-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0); }
+        }
+
+        .cart-empty-premium-icon {
+            animation: float 4s ease-in-out infinite;
+            color: var(--accent);
+            opacity: 0.85;
+            transition: color 0.3s, opacity 0.3s;
+            margin: 0 auto 24px;
             display: block;
+        }
+
+        .cart-empty-state:hover .cart-empty-premium-icon {
+            color: var(--deep);
+            opacity: 1;
         }
 
         .cart-empty-state h3 {
@@ -844,16 +865,22 @@
             const label = document.getElementById('cart-count-label');
 
             if (cartItems.length === 0) {
-                label.textContent = 'Your cart is empty';
+                label.style.display = 'none';
                 grid.innerHTML = `
                     <div class="cart-empty-state">
-                        <span class="cart-empty-icon">🛒</span>
+                        <svg class="cart-empty-premium-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
                         <h3>Your cart is empty</h3>
                         <p>Explore our beautiful collection and add items you love.</p>
                         <a href="shop.html" class="btn-shop-now">Start Shopping →</a>
                     </div>`;
                 return;
             }
+
+            label.style.display = 'block';
 
             const count = cartItems.reduce((s, i) => s + (i.quantity || 1), 0);
             label.textContent = `${count} item${count !== 1 ? 's' : ''} in your cart`;
