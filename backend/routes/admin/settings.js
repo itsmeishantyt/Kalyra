@@ -55,18 +55,18 @@ const upload = multer({
 // ── GET /api/v1/admin/settings ───────────────────────────────
 router.get('/', (req, res) => {
   const settings = readSettings();
-  res.json(R.ok(settings));
+  return R.success(res, settings);
 });
 
 // ── POST /api/v1/admin/settings/banner/:type ────────────────
 router.post('/banner/:type', requireAdmin(), (req, res, next) => {
   const type = req.params.type;
   if (type !== 'desktop' && type !== 'mobile') {
-    return res.status(400).json(R.fail('Invalid banner type. Must be "desktop" or "mobile"'));
+    return R.badRequest(res, 'Invalid banner type. Must be "desktop" or "mobile"');
   }
   next();
 }, upload.single('banner'), (req, res) => {
-  if (!req.file) return res.status(400).json(R.fail('No image file provided'));
+  if (!req.file) return R.badRequest(res, 'No image file provided');
 
   const type = req.params.type;
   const newFilename = req.file.filename;
@@ -89,14 +89,14 @@ router.post('/banner/:type', requireAdmin(), (req, res, next) => {
   }
   writeSettings(settings);
 
-  res.json(R.ok({ bannerImage: imageUrl }, `Hero ${type} banner image updated`));
+  return R.success(res, { bannerImage: imageUrl }, `Hero ${type} banner image updated`);
 });
 
 // ── DELETE /api/v1/admin/settings/banner/:type ──────────────
 router.delete('/banner/:type', requireAdmin(), (req, res) => {
   const type = req.params.type;
   if (type !== 'desktop' && type !== 'mobile') {
-    return res.status(400).json(R.fail('Invalid banner type. Must be "desktop" or "mobile"'));
+    return R.badRequest(res, 'Invalid banner type. Must be "desktop" or "mobile"');
   }
 
   try {
@@ -115,7 +115,7 @@ router.delete('/banner/:type', requireAdmin(), (req, res) => {
   }
   writeSettings(settings);
 
-  res.json(R.ok(null, `Hero ${type} banner image removed`));
+  return R.success(res, null, `Hero ${type} banner image removed`);
 });
 
 module.exports = router;
