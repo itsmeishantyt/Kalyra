@@ -4685,7 +4685,9 @@ footer {
 
   .highlight-card {
     padding: 28px 20px;
-    gap: 10px;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
   }
 
   .highlight-icon {
