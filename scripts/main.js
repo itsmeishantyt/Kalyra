@@ -322,12 +322,6 @@ function initShopFilters() {
 
             if (filters.categories.length > 0) {
                 query.category = filters.categories.join(',');
-            } else {
-                if (isApparelPage) {
-                    query.category = 'Dresses,Bottomwear,Kurtas,Outerwear,Topwear';
-                } else if (isShopPage) {
-                    query.category = 'artistry,mandala,living,wearable,bespoke';
-                }
             }
 
             if (filters.maxPrice < Number.MAX_VALUE) query.max_price = filters.maxPrice;

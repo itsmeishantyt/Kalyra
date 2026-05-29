@@ -37,6 +37,18 @@ function initDatabase() {
     // Column already exists, safe to ignore
   }
 
+  // Backfill product_type for existing rows that were seeded before the column existed
+  // Products with apparel-style SKUs or apparel categories should be typed as 'apparel'
+  database.exec(`
+    UPDATE products SET product_type = 'apparel'
+    WHERE product_type IS NULL OR (
+      product_type = 'shop' AND (
+        sku LIKE 'KLY-AP%'
+        OR category IN ('Dresses','Bottomwear','Kurtas','Outerwear','Topwear')
+      )
+    )
+  `);
+
   return database;
 }
 

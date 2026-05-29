@@ -9,6 +9,7 @@ const state = {
     products: { page: 1 },
     orders:   { page: 1 },
     users:    { page: 1 },
+    activeView: 'overview',   // track the currently visible section
 };
 
 // In-memory product cache — avoids re-fetching for the edit modal
@@ -80,7 +81,8 @@ function showLogin() {
 function showDashboard() {
     loginView.classList.add('hidden');
     dashboardView.classList.remove('hidden');
-    switchView('overview');
+    // Restore the last active view instead of always going to overview
+    switchView(state.activeView || 'overview');
 }
 
 // ── Navigation ────────────────────────────────────────────────────
@@ -107,11 +109,10 @@ function switchView(viewName) {
 
     navItems.forEach(n => n.classList.toggle('active', n.dataset.view === viewName));
 
-    state.products.page = 1;
-    state.orders.page   = 1;
-    state.users.page    = 1;
+    // Only reset pagination when actually switching tabs (not during in-place refreshes)
+    state.activeView = viewName;
 
-    if (viewName === 'overview')  fetchOverview();
+    if (viewName === 'overview')  { state.products.page = 1; state.orders.page = 1; state.users.page = 1; fetchOverview(); }
     if (viewName === 'products')  fetchProducts();
     if (viewName === 'orders')    fetchOrders();
     if (viewName === 'users')     fetchUsers();
@@ -123,7 +124,11 @@ async function apiGet(path) {
         const res = await fetch(`${API}${path}`, {
             headers: { Authorization: `Bearer ${adminToken}` },
         });
-        if (res.status === 401) { logoutBtn.click(); return null; }
+        if (res.status === 401) {
+            // Token expired — show a non-destructive toast instead of kicking back to overview
+            toast('Session expired. Please log out and log in again.', 'error');
+            return null;
+        }
         return await res.json();
     } catch (err) {
         console.error('API GET error:', err);
