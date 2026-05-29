@@ -38,12 +38,26 @@ async function loadComponent(elementId, filePath) {
             if (!res2.ok) throw new Error(`HTTP error! status: ${res2.status}`);
             let html = await res2.text();
             html = html.replace(/src=(['"])\/uploads\//g, (match, p1) => `src=${p1}${host}/uploads/`);
+            if (elementId === 'hero' && window.bannerSettings) {
+                const isMobile = window.innerWidth <= 640;
+                const customSrc = isMobile ? (window.bannerSettings.mobileBannerImage || window.bannerSettings.desktopBannerImage) : window.bannerSettings.desktopBannerImage;
+                if (customSrc) {
+                    html = html.replace(/\/uploads\/products\/diy\/pearl-hat-portrait\.jpg/g, `${host}${customSrc}`);
+                }
+            }
             element.innerHTML = html;
             return true;
         }
 
         let html = await response.text();
         html = html.replace(/src=(['"])\/uploads\//g, (match, p1) => `src=${p1}${host}/uploads/`);
+        if (elementId === 'hero' && window.bannerSettings) {
+            const isMobile = window.innerWidth <= 640;
+            const customSrc = isMobile ? (window.bannerSettings.mobileBannerImage || window.bannerSettings.desktopBannerImage) : window.bannerSettings.desktopBannerImage;
+            if (customSrc) {
+                html = html.replace(/\/uploads\/products\/diy\/pearl-hat-portrait\.jpg/g, `${host}${customSrc}`);
+            }
+        }
         element.innerHTML = html;
         console.log(`Injected ${elementId}, html length: ${html.length}, grid found: ${!!element.querySelector('#shop-items-container') || !!element.querySelector('.products-grid')}`);
         return true;
@@ -57,6 +71,18 @@ async function loadAllComponents() {
     const isShopPage = window.location.href.toLowerCase().includes('shop.html') || !!document.getElementById('shop-items-container');
 
     console.log('Loading components...', { pathname: window.location.pathname, isShopPage });
+
+    // Pre-fetch custom banner settings to avoid layout shift/flashing
+    try {
+        const host = window.API_HOST || 'http://localhost:3000';
+        const res = await fetch(`${host}/api/v1/admin/settings`);
+        if (res.ok) {
+            const data = await res.json();
+            window.bannerSettings = data?.data || {};
+        }
+    } catch (e) {
+        console.warn('Pre-fetch banner settings failed:', e);
+    }
 
     const loadPromises = Object.keys(components).map(id => {
         let path = components[id];
@@ -1522,10 +1548,7 @@ async function applyCustomBanner() {
 
     try {
         const host = window.API_HOST || 'http://localhost:3000';
-        const res  = await fetch(`${host}/api/v1/admin/settings`);
-        if (!res.ok) return;
-        const data = await res.json();
-        const settings = data?.data || {};
+        const settings = window.bannerSettings || {};
 
         const defaultSrc = '/uploads/products/diy/pearl-hat-portrait.jpg';
 
