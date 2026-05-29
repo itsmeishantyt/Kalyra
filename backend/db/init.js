@@ -37,6 +37,13 @@ function initDatabase() {
     // Column already exists, safe to ignore
   }
 
+  // Alter table to add badge if it doesn't exist
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN badge TEXT");
+  } catch (err) {
+    // Column already exists, safe to ignore
+  }
+
   // Backfill product_type for existing rows that were seeded before the column existed
   // Products with apparel-style SKUs or apparel categories should be typed as 'apparel'
   database.exec(`

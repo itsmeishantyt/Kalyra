@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS products (
                             CHECK(discount_pct >= 0 AND discount_pct <= 100),
     stock           INTEGER NOT NULL DEFAULT 0 CHECK(stock >= 0),
     image_url       TEXT,
+    badge           TEXT,
     sizes           TEXT    DEFAULT '[]',   -- JSON: ["S","M","L","XL"]
     colors          TEXT    DEFAULT '[]',   -- JSON: ["Red","Blue"]
     is_active       INTEGER NOT NULL DEFAULT 1

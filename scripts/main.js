@@ -1,5 +1,8 @@
-// The CATALOG is now managed in scripts/catalog.js, but storefront now uses API directly.
 const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'http://localhost:3000') + url : url;
+const getBadgeClass = (badgeText) => {
+    if (!badgeText) return '';
+    return 'badge-' + badgeText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+};
 
 // Component Loading System
 const components = {
@@ -248,9 +251,11 @@ function initShopFilters() {
             
             // Format price
             const price = typeof p.price === 'number' ? p.price : 0;
+            const badgeHtml = p.badge ? `<div class="product-card-badge ${getBadgeClass(p.badge)}">${p.badge}</div>` : '';
             
             card.innerHTML = `
                 <div class="product-img-wrap">
+                    ${badgeHtml}
                     <img src="${getImageUrl(p.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
                     <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
                 </div>
@@ -921,6 +926,7 @@ async function renderPDP(container, product) {
                 
                 <div class="pdp-info">
                     <div class="pdp-category">${product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1) : ''} Collection</div>
+                    ${product.badge ? `<div class="product-card-badge ${getBadgeClass(product.badge)}" style="margin-top: 10px; margin-bottom: 6px;">${product.badge}</div>` : ''}
                     <h1 class="pdp-title">${product.name}</h1>
                     
                     <p class="pdp-price">₹${(typeof product.price === 'number' ? product.price : 0).toLocaleString()}</p>

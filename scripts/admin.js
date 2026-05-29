@@ -370,14 +370,34 @@ async function toggleProduct(id, isActive) {
 }
 
 // ── Product Modal ─────────────────────────────────────────────────
+async function loadCategoryDatalist() {
+    try {
+        const res = await fetch('http://localhost:3000/api/v1/products/categories');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+            const dl = document.getElementById('categories-list');
+            if (dl) {
+                dl.innerHTML = data.data
+                    .map(c => `<option value="${c.category}">`)
+                    .join('');
+            }
+        }
+    } catch (_) {
+        // Silently fail
+    }
+}
+
 function openAddProductModal() {
     document.getElementById('modal-title').textContent = 'Add New Product';
     document.getElementById('product-form').reset();
     document.getElementById('product-form-id').value = '';
     document.getElementById('pf-type').value = 'shop';
+    document.getElementById('pf-badge').value = '';
     document.getElementById('product-delete-btn').classList.add('hidden');
     document.getElementById('product-submit-btn').textContent = 'Add Product';
     document.getElementById('product-modal-overlay').classList.remove('hidden');
+    loadCategoryDatalist();
 }
 
 function openEditProductModal(id) {
@@ -391,6 +411,7 @@ function openEditProductModal(id) {
     document.getElementById('pf-sku').value                   = p.sku || '';
     document.getElementById('pf-category').value              = p.category || '';
     document.getElementById('pf-type').value                  = p.product_type || 'shop';
+    document.getElementById('pf-badge').value                 = p.badge || '';
     document.getElementById('pf-price').value                 = p.price || '';
     document.getElementById('pf-discount').value              = p.discount_pct || 0;
     document.getElementById('pf-stock').value                 = p.stock || 0;
@@ -399,6 +420,7 @@ function openEditProductModal(id) {
     document.getElementById('product-delete-btn').classList.remove('hidden');
     document.getElementById('product-submit-btn').textContent = 'Save Changes';
     document.getElementById('product-modal-overlay').classList.remove('hidden');
+    loadCategoryDatalist();
 }
 
 function closeProductModal() {
@@ -421,6 +443,7 @@ async function submitProductForm(e) {
     formData.append('discount_pct', document.getElementById('pf-discount').value || 0);
     formData.append('stock',        document.getElementById('pf-stock').value || 0);
     formData.append('description',  document.getElementById('pf-description').value);
+    formData.append('badge',        document.getElementById('pf-badge').value);
     const imgFile = document.getElementById('pf-image').files[0];
     if (imgFile) formData.append('image', imgFile);
 

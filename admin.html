@@ -439,13 +439,28 @@
                     </div>
                     <div class="form-group">
                         <label>Category</label>
-                        <input type="text" id="pf-category" placeholder="e.g. artistry">
+                        <input type="text" id="pf-category" list="categories-list" placeholder="e.g. artistry">
+                        <datalist id="categories-list"></datalist>
                     </div>
                     <div class="form-group">
                         <label>Product Type *</label>
                         <select id="pf-type" required>
                             <option value="shop">Shop Item</option>
                             <option value="apparel">Apparel</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Product Badge</label>
+                        <select id="pf-badge">
+                            <option value="">No Badge</option>
+                            <option value="Best Seller">Best Seller</option>
+                            <option value="Popular">Popular</option>
+                            <option value="Editor's Pick">Editor's Pick</option>
+                            <option value="Ready to Ship">Ready to Ship</option>
+                            <option value="Pre-Order Open">Pre-Order Open</option>
+                            <option value="Limited Stock">Limited Stock</option>
+                            <option value="Restocking Soon">Restocking Soon</option>
+                            <option value="Bulk Order Available">Bulk Order Available</option>
                         </select>
                     </div>
                     <div class="form-group">

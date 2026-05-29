@@ -65,13 +65,13 @@ router.get('/', [
       SELECT p.id, p.name, p.description, p.sku, p.category, p.product_type, p.tags,
              p.price, p.discount_pct,
              ROUND(p.price * (1 - p.discount_pct / 100), 2) as discounted_price,
-             p.stock, p.image_url, p.sizes, p.colors, p.created_at
+             p.stock, p.image_url, p.sizes, p.colors, p.badge, p.created_at
        FROM products p
        WHERE ${whereClause}
        ORDER BY ${orderClause}
        LIMIT ? OFFSET ?
      `).all(...params, limit, offset);
- 
+
      return R.paginate(res, products, { page, limit, total });
    } catch (err) { next(err); }
  });
@@ -96,7 +96,7 @@ router.get('/:id', (req, res, next) => {
     const product = db.prepare(`
       SELECT id, name, description, sku, category, tags, price, discount_pct,
              ROUND(price * (1 - discount_pct / 100), 2) as discounted_price,
-             stock, image_url, sizes, colors, created_at
+             stock, image_url, sizes, colors, badge, created_at
       FROM products WHERE id = ? AND is_active = 1
     `).get(req.params.id);
     if (!product) return R.notFound(res, 'Product not found');
