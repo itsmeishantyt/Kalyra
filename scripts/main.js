@@ -172,6 +172,36 @@ async function loadAllComponents() {
 }
 
 async function loadDynamicHomepageContent() {
+    // Helper to restore and fade in default assets in case of errors
+    const revealDefaults = () => {
+        const heroTitle = document.querySelector('.hero-title');
+        const heroSub = document.querySelector('.hero-sub');
+        const heroImg = document.querySelector('.hero-right img');
+        const heroRight = document.querySelector('.hero-right');
+        const ctaTitle = document.querySelector('.cta-title');
+        const ctaImages = document.querySelectorAll('.cta-img img');
+        const ctaContainers = document.querySelectorAll('.cta-img');
+
+        if (heroTitle) heroTitle.classList.add('loaded');
+        if (heroSub) heroSub.classList.add('loaded');
+        if (heroImg) {
+            heroImg.src = 'assets/pearl-hat-portrait.jpg';
+            heroImg.classList.add('loaded');
+            if (heroRight) heroRight.classList.remove('loading-shimmer');
+        }
+
+        if (ctaTitle) ctaTitle.classList.add('loaded');
+        
+        const defaults = ['assets/wedding-resin-plate.jpg', 'assets/mirror-butterfly-art.jpg', 'assets/floral-gem-art.jpg'];
+        ctaImages.forEach((img, i) => {
+            if (img) {
+                img.src = defaults[i];
+                img.classList.add('loaded');
+                if (ctaContainers[i]) ctaContainers[i].classList.remove('loading-shimmer');
+            }
+        });
+    };
+
     try {
         const host = window.API_HOST || 'https://api.kalyraa.com';
         const res = await fetch(`${host}/api/v1/settings`);
@@ -179,26 +209,84 @@ async function loadDynamicHomepageContent() {
         if (data.success && data.data) {
             const settings = data.data;
 
+            // Helper to fade in elements smoothly
+            const revealText = (el, text, isHTML = false) => {
+                if (!el) return;
+                if (isHTML) el.innerHTML = text;
+                else el.textContent = text;
+                el.classList.add('loaded');
+            };
+
+            // Helper to lazy-load image and fade in, removing shimmer container loading class
+            const loadImage = (imgEl, containerEl, srcUrl) => {
+                if (!imgEl) return;
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                    imgEl.src = srcUrl;
+                    imgEl.classList.add('loaded');
+                    if (containerEl) containerEl.classList.remove('loading-shimmer');
+                };
+                tempImg.onerror = () => {
+                    imgEl.src = srcUrl;
+                    imgEl.classList.add('loaded');
+                    if (containerEl) containerEl.classList.remove('loading-shimmer');
+                };
+                tempImg.src = srcUrl;
+            };
+
             // Update Hero Banner
             const heroTitle = document.querySelector('.hero-title');
             const heroSub = document.querySelector('.hero-sub');
             const heroImg = document.querySelector('.hero-right img');
+            const heroRight = document.querySelector('.hero-right');
             
-            if (heroTitle && settings.hero_title) heroTitle.innerHTML = settings.hero_title;
-            if (heroSub && settings.hero_sub) heroSub.textContent = settings.hero_sub;
-            if (heroImg && settings.hero_image_url) heroImg.src = getImageUrl(settings.hero_image_url);
+            if (settings.hero_title) revealText(heroTitle, settings.hero_title, true);
+            else if (heroTitle) heroTitle.classList.add('loaded');
+
+            if (settings.hero_sub) revealText(heroSub, settings.hero_sub, false);
+            else if (heroSub) heroSub.classList.add('loaded');
+
+            if (heroImg && settings.hero_image_url) {
+                loadImage(heroImg, heroRight, getImageUrl(settings.hero_image_url));
+            } else if (heroImg) {
+                heroImg.classList.add('loaded');
+                if (heroRight) heroRight.classList.remove('loading-shimmer');
+            }
 
             // Update CTA Banner
             const ctaTitle = document.querySelector('.cta-title');
             const ctaImages = document.querySelectorAll('.cta-img img');
+            const ctaContainers = document.querySelectorAll('.cta-img');
             
-            if (ctaTitle && settings.cta_title) ctaTitle.innerHTML = settings.cta_title;
-            if (ctaImages.length > 0 && settings.cta_image_1) ctaImages[0].src = getImageUrl(settings.cta_image_1);
-            if (ctaImages.length > 1 && settings.cta_image_2) ctaImages[1].src = getImageUrl(settings.cta_image_2);
-            if (ctaImages.length > 2 && settings.cta_image_3) ctaImages[2].src = getImageUrl(settings.cta_image_3);
+            if (settings.cta_title) revealText(ctaTitle, settings.cta_title, true);
+            else if (ctaTitle) ctaTitle.classList.add('loaded');
+            
+            if (ctaImages.length > 0 && settings.cta_image_1) {
+                loadImage(ctaImages[0], ctaContainers[0], getImageUrl(settings.cta_image_1));
+            } else if (ctaImages.length > 0) {
+                ctaImages[0].classList.add('loaded');
+                if (ctaContainers[0]) ctaContainers[0].classList.remove('loading-shimmer');
+            }
+
+            if (ctaImages.length > 1 && settings.cta_image_2) {
+                loadImage(ctaImages[1], ctaContainers[1], getImageUrl(settings.cta_image_2));
+            } else if (ctaImages.length > 1) {
+                ctaImages[1].classList.add('loaded');
+                if (ctaContainers[1]) ctaContainers[1].classList.remove('loading-shimmer');
+            }
+
+            if (ctaImages.length > 2 && settings.cta_image_3) {
+                loadImage(ctaImages[2], ctaContainers[2], getImageUrl(settings.cta_image_3));
+            } else if (ctaImages.length > 2) {
+                ctaImages[2].classList.add('loaded');
+                if (ctaContainers[2]) ctaContainers[2].classList.remove('loading-shimmer');
+            }
+        } else {
+            revealDefaults();
         }
     } catch (e) {
         console.error('Error loading dynamic homepage content:', e);
+        revealDefaults();
     }
 }
 
@@ -1366,28 +1454,37 @@ function setupPDPInteractions() {
 }
 
 function initGoogleAuth() {
+    const googleBtnContainer = document.getElementById('btn-google-login');
     if (typeof google !== 'undefined') {
         google.accounts.id.initialize({
-            client_id: "349751177817-oo4elddbeu78b35j34bo3uj88n4f8did.apps.googleusercontent.com", // Replace with actual Client ID
+            client_id: "349751177817-oo4elddbeu78b35j34bo3uj88n4f8did.apps.googleusercontent.com",
             callback: window.handleGoogleResponse,
             auto_select: false,
             cancel_on_tap_outside: true
         });
 
-        // Optionally render the official button as well
-        const googleBtnContainer = document.getElementById('btn-google-login');
         if (googleBtnContainer) {
-            // Uncomment to use official Google button rendering instead of custom
-            /*
+            googleBtnContainer.innerHTML = '';
             google.accounts.id.renderButton(googleBtnContainer, {
                 theme: 'outline',
                 size: 'large',
-                width: '100%'
+                width: '320',
+                text: 'continue_with',
+                shape: 'pill',
+                logo_alignment: 'left'
             });
-            */
+            // Also attempt to invoke One Tap non-intrusively
+            google.accounts.id.prompt();
         }
     } else {
         console.warn('Google Identity Services script not loaded');
+        if (googleBtnContainer) {
+            googleBtnContainer.innerHTML = `
+                <button type="button" class="login-submit" style="background:#dadce0; color:#666; cursor:not-allowed;" disabled>
+                    Google Login Unavailable
+                </button>
+            `;
+        }
     }
 }
 

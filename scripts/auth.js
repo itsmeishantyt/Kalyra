@@ -113,26 +113,6 @@ function updateNavbarUserState() {
           </div>
         </div>
       `;
-
-      link.addEventListener('click', e => {
-        const logoutBtn = e.target.closest('#nav-logout-btn');
-        if (logoutBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          KalyraAuth.logout();
-          return;
-        }
-        e.stopPropagation();
-        const dd = document.getElementById('nav-user-dropdown');
-        if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-      });
-
-      document.addEventListener('click', e => {
-        const dd = document.getElementById('nav-user-dropdown');
-        if (dd && !link.contains(e.target)) {
-          dd.style.display = 'none';
-        }
-      });
     });
   } else {
     userIconLinks.forEach(link => {
@@ -407,7 +387,11 @@ function wireModals() {
   });
 
   // Google login button
-  document.getElementById('btn-google-login')?.addEventListener('click', _handleGoogleClick);
+  document.getElementById('btn-google-login')?.addEventListener('click', (e) => {
+    if (typeof google === 'undefined' || GOOGLE_CLIENT_ID.startsWith('YOUR_')) {
+      _handleGoogleClick();
+    }
+  });
 
   /* ════ SIGNUP MODAL ═══════════════════════════════════════ */
 
@@ -677,6 +661,35 @@ function _handleGoogleClick() {
 /* ─── Global events ─────────────────────────────────────── */
 window.addEventListener('kalyra:login', () => updateNavbarUserState());
 window.addEventListener('kalyra:logout', () => updateNavbarUserState());
+
+// Toggle user dropdown and handle delegated logout click
+document.addEventListener('click', e => {
+  const avatarLink = e.target.closest('.nav-user-icon-link');
+  const logoutBtn = e.target.closest('#nav-logout-btn');
+
+  if (logoutBtn) {
+    e.preventDefault();
+    KalyraAuth.logout();
+    return;
+  }
+
+  if (avatarLink) {
+    const user = KalyraToken.getUser();
+    if (!user) return; // Let standard login modal handlers process it
+    e.preventDefault();
+    const dd = document.getElementById('nav-user-dropdown');
+    if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  const dd = document.getElementById('nav-user-dropdown');
+  const avatarLink = document.querySelector('.nav-user-icon-link');
+  if (dd && avatarLink && !avatarLink.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
 
 /* ─── Auto-init ─────────────────────────────────────────── */
 function initAuth() {

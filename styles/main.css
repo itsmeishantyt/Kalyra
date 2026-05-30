@@ -4535,3 +4535,48 @@ footer {
     height: 60px;
   }
 }
+
+/* ── Dynamic CMS Content Shimmer & Smooth Fade ── */
+.hero-title,
+.hero-sub,
+.hero-right img,
+.cta-title,
+.cta-img img {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.hero-title,
+.hero-sub,
+.cta-title {
+  transform: translateY(12px);
+}
+
+.hero-title.loaded,
+.hero-sub.loaded,
+.cta-title.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-right img.loaded,
+.cta-img img.loaded {
+  opacity: 1;
+}
+
+/* Premium shimmers for image loaders */
+.hero-right.loading-shimmer,
+.cta-img.loading-shimmer {
+  background: linear-gradient(90deg, #f3f0ea 25%, #e8e4db 50%, #f3f0ea 75%) !important;
+  background-size: 200% 100% !important;
+  animation: shimmerAnim 1.6s infinite linear !important;
+}
+
+@keyframes shimmerAnim {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
