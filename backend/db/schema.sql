@@ -250,6 +250,20 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 
 -- ─────────────────────────────────────────────────────────
+--  EMAIL OTPs  (signup / email verification)
+-- ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS email_otps (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    email       TEXT    NOT NULL COLLATE NOCASE,
+    otp_hash    TEXT    NOT NULL,
+    purpose     TEXT    NOT NULL DEFAULT 'signup'
+                        CHECK(purpose IN ('signup','email_change')),
+    expires_at  TEXT    NOT NULL,
+    used        INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ─────────────────────────────────────────────────────────
 --  INDEXES
 -- ─────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_email          ON users(email);
@@ -271,3 +285,22 @@ CREATE INDEX IF NOT EXISTS idx_audit_admin          ON audit_log(admin_id);
 CREATE INDEX IF NOT EXISTS idx_promocodes_code      ON promocodes(code);
 CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin ON admin_sessions(admin_id);
 CREATE INDEX IF NOT EXISTS idx_reset_tokens_user    ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_email_otps_email     ON email_otps(email);
+
+-- ─────────────────────────────────────────────────────────
+--  WEBSITE SETTINGS (CMS)
+-- ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+
+INSERT OR IGNORE INTO settings (key, value) VALUES
+('hero_title', 'Artfully Crafted,<br>Designed To Inspire'),
+('hero_sub', 'Handmade resin art, personalized name plates, and bespoke accessories to elevate your space.'),
+('hero_image_url', '/assets/pearl-hat-portrait.jpg'),
+('cta_title', 'Bring Home a Piece<br>Of <em>Handmade Magic</em>'),
+('cta_image_1', '/assets/wedding-resin-plate.jpg'),
+('cta_image_2', '/assets/mirror-butterfly-art.jpg'),
+('cta_image_3', '/assets/floral-gem-art.jpg');
+

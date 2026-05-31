@@ -15,7 +15,7 @@ router.get('/', [
   query('search').optional().trim(),
   query('min_price').optional().isFloat({ min: 0 }).toFloat(),
   query('max_price').optional().isFloat({ min: 0 }).toFloat(),
-  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount', 'price', 'best-selling', 'trending', 'top-rated', 'new-arrivals']),
+  query('sort').optional().isIn(['price_asc', 'price_desc', 'newest', 'discount', 'price', 'best_selling', 'best-selling', 'trending', 'top_rated', 'top-rated', 'new_arrivals', 'new-arrivals']),
   query('order').optional().isIn(['asc', 'desc', 'ASC', 'DESC']),
   query('in_stock').optional().isBoolean().toBoolean(),
 ], validate, (req, res, next) => {
@@ -53,9 +53,12 @@ router.get('/', [
       newest:         'p.created_at DESC',
       discount:       'p.discount_pct DESC',
       price:          `p.price ${String(order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC'}`,
-      'best-selling': '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.product_id = p.id) DESC, p.id DESC',
-      'trending':     '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi WHERE oi.product_id = p.id) DESC, p.created_at DESC',
-      'top-rated':    'p.discount_pct DESC, p.id DESC',
+      best_selling:   '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE oi.product_id = p.id AND o.status NOT IN (\'cancelled\', \'refunded\')) DESC',
+      'best-selling': '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE oi.product_id = p.id AND o.status NOT IN (\'cancelled\', \'refunded\')) DESC',
+      trending:       '(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE oi.product_id = p.id AND o.status NOT IN (\'cancelled\', \'refunded\') AND o.created_at >= datetime(\'now\', \'-30 days\')) DESC',
+      top_rated:      '(SELECT COUNT(*) FROM liked_products lp WHERE lp.product_id = p.id) DESC',
+      'top-rated':    '(SELECT COUNT(*) FROM liked_products lp WHERE lp.product_id = p.id) DESC',
+      new_arrivals:   'p.created_at DESC',
       'new-arrivals': 'p.created_at DESC',
     };
     const orderClause = orderMap[sort] || 'p.created_at DESC';

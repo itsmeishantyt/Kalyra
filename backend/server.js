@@ -37,3 +37,6 @@ const PORT = process.env.PORT || 3000; // Load port from env (restart)
     process.exit(1);
   }
 })();
+
+// Heartbeat change to trigger nodemon schema sync reload
+

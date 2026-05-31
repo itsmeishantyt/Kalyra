@@ -26,6 +26,7 @@ const adminPromoRoutes     = require('./routes/admin/promocodes');
 const adminOrderRoutes     = require('./routes/admin/orders');
 const adminAnalyticsRoutes = require('./routes/admin/analytics');
 const adminSettingsRoutes  = require('./routes/admin/settings');
+const settingsRoutes       = require('./routes/settings');
 
 const app = express();
 
@@ -37,8 +38,24 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || '*')
   .split(',').map(o => o.trim()).filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins.includes('*') ? '*' : (origin, cb) => {
-    if (!origin || origin === 'null' || allowedOrigins.includes(origin)) return cb(null, true);
+  origin: (origin, cb) => {
+    // Allow if same-origin or no origin (e.g. server-to-server, postman)
+    if (!origin) return cb(null, true);
+    
+    // Check if matching configured origins
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    
+    // Infallible fallback for production domains to prevent Hostinger env-loading issues
+    const url = new URL(origin);
+    if (url.hostname === 'kalyraa.com' || url.hostname === 'www.kalyraa.com' || url.hostname.endsWith('.kalyraa.com')) {
+      return cb(null, true);
+    }
+    
+    // Local dev fallbacks
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return cb(null, true);
+    }
+
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -57,7 +74,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 // ── Static uploads ──────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 
 // ── Health check ────────────────────────────────────────────
 app.get('/api/v1/health', (req, res) => {
@@ -97,6 +113,7 @@ app.use(`${adm}/promocodes`,     adminPromoRoutes);
 app.use(`${adm}/orders`,         adminOrderRoutes);
 app.use(`${adm}/analytics`,      adminAnalyticsRoutes);
 app.use(`${adm}/settings`,       adminSettingsRoutes);
+app.use(`${v1}/settings`,        settingsRoutes);
 
 // ── 404 handler ──────────────────────────────────────────
 app.use((req, res) => {

@@ -1,7 +1,9 @@
 // ── Kalyra Admin Panel ──────────────────────────────────────────────
 // All data is fetched live from the backend. Zero hardcoded values.
 
-const API = 'http://localhost:3000/api/v1/admin';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000/api/v1/admin'
+    : 'https://api.kalyraa.com/api/v1/admin';
 let adminToken = localStorage.getItem('kalyra_admin_token');
 
 // Page state
@@ -128,6 +130,7 @@ function switchView(viewName) {
     if (viewName === 'products')  fetchProducts();
     if (viewName === 'orders')    fetchOrders();
     if (viewName === 'users')     fetchUsers();
+    if (viewName === 'settings')  fetchSettings();
 }
 
 // ── API helpers ───────────────────────────────────────────────────
@@ -342,11 +345,12 @@ async function fetchProducts(page = null) {
     // Cache products so the edit modal can pre-fill without a second API call
     data.data.forEach(p => _productCache.set(p.id, p));
 
+    const apiOrigin = API.replace('/api/v1/admin', '');
     tbody.innerHTML = data.data.map(p => `
         <tr>
             <td>
                 <div class="product-cell">
-                    <img src="${p.image_url ? `http://localhost:3000${p.image_url}` : 'assets/imgs/placeholder.png'}" class="product-img" alt="${p.name}" onerror="this.src='assets/imgs/placeholder.png'">
+                    <img src="${p.image_url ? `${apiOrigin}${p.image_url}` : 'assets/imgs/placeholder.png'}" class="product-img" alt="${p.name}" onerror="this.src='assets/imgs/placeholder.png'">
                     <div>
                         <div style="font-weight:500">${p.name}</div>
                         <div style="font-size:.75rem;color:var(--admin-text-muted)">${p.sku || '—'}</div>
@@ -388,7 +392,7 @@ async function toggleProduct(id, isActive) {
 // ── Product Modal ─────────────────────────────────────────────────
 async function loadCategoryDatalist() {
     try {
-        const res = await fetch('http://localhost:3000/api/v1/products/categories');
+        const res = await fetch(`${API.replace('/api/v1/admin', '')}/api/v1/products/categories`);
         if (!res.ok) return;
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
@@ -673,7 +677,7 @@ async function loadBannerPreview() {
     const mobileUpBtn  = document.getElementById('banner-upload-btn-mobile');
     const mobileCcBtn  = document.getElementById('banner-cancel-btn-mobile');
 
-    const host = 'http://localhost:3000';
+    const host = API.replace('/api/v1/admin', '');
 
     // Reset upload/cancel button visibility on preview load
     if (desktopUpBtn) desktopUpBtn.style.display = 'none';
@@ -832,3 +836,317 @@ async function removeBannerImage(type = 'desktop') {
         }
     }
 }
+
+// ── Website Settings (CMS) ───────────────────────────────────────
+async function fetchSettings() {
+    const base = API_BASE_URL.replace('/admin', '');
+    try {
+        const res = await fetch(`${base}/settings`);
+        const data = await res.json();
+        if (data?.success && data?.data) {
+            const settings = data.data;
+            document.getElementById('settings-hero-title').value = settings.hero_title || '';
+            document.getElementById('settings-hero-sub').value = settings.hero_sub || '';
+            document.getElementById('settings-cta-title').value = settings.cta_title || '';
+
+            // Image previews
+            updateSettingPreview('settings-hero-image-preview', settings.hero_image_url);
+            updateSettingPreview('settings-cta-image-1-preview', settings.cta_image_1);
+            updateSettingPreview('settings-cta-image-2-preview', settings.cta_image_2);
+            updateSettingPreview('settings-cta-image-3-preview', settings.cta_image_3);
+        }
+    } catch (err) {
+        console.error('Error fetching settings:', err);
+    }
+}
+
+function updateSettingPreview(imgId, url) {
+    const img = document.getElementById(imgId);
+    if (!img) return;
+    if (url) {
+        img.src = url.startsWith('/') ? API_BASE_URL.replace('/api/v1/admin', '') + url : url;
+        img.style.display = 'block';
+    } else {
+        img.style.display = 'none';
+        img.src = '';
+    }
+}
+
+// ── File Upload Preview Helper ──────────────────────────────────
+function setupFilePreview(inputId, imgId) {
+    const input = document.getElementById(inputId);
+    const img = document.getElementById(imgId);
+    if (!input || !img) return;
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (file) {
+            img.src = URL.createObjectURL(file);
+            img.style.display = 'block';
+        }
+    });
+}
+
+// Wire real-time preview events on DOMContentLoaded or script load
+setupFilePreview('settings-hero-image', 'settings-hero-image-preview');
+setupFilePreview('settings-cta-image-1', 'settings-cta-image-1-preview');
+setupFilePreview('settings-cta-image-2', 'settings-cta-image-2-preview');
+setupFilePreview('settings-cta-image-3', 'settings-cta-image-3-preview');
+setupFilePreview('product-image', 'product-image-preview');
+
+// Settings form submission
+const settingsForm = document.getElementById('website-settings-form');
+if (settingsForm) {
+    settingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('save-settings-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span>Saving...</span>';
+
+        const formData = new FormData();
+        formData.append('hero_title', document.getElementById('settings-hero-title').value);
+        formData.append('hero_sub', document.getElementById('settings-hero-sub').value);
+        formData.append('cta_title', document.getElementById('settings-cta-title').value);
+
+        const heroImgFile = document.getElementById('settings-hero-image').files[0];
+        if (heroImgFile) formData.append('hero_image', heroImgFile);
+
+        const cta1 = document.getElementById('settings-cta-image-1').files[0];
+        if (cta1) formData.append('cta_image_1', cta1);
+
+        const cta2 = document.getElementById('settings-cta-image-2').files[0];
+        if (cta2) formData.append('cta_image_2', cta2);
+
+        const cta3 = document.getElementById('settings-cta-image-3').files[0];
+        if (cta3) formData.append('cta_image_3', cta3);
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/settings`, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${adminToken}`
+                },
+                body: formData
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Settings saved successfully!');
+                fetchSettings(); // Refresh preview URLs and inputs
+            } else {
+                alert('Failed to save settings: ' + (result.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('Error saving settings:', err);
+            alert('Network error saving settings.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span>Save Settings</span>';
+        }
+    });
+}
+
+// ── Add / Edit Product Modals ────────────────────────────────────
+const modalBackdrop = document.getElementById('product-modal-backdrop');
+const productModal = document.getElementById('product-modal');
+const modalClose = document.getElementById('product-modal-close');
+
+// Attach listener to '+ Add Product' button
+document.addEventListener('click', (e) => {
+    if (e.target && e.target.classList.contains('btn-primary') && e.target.textContent.includes('Add Product')) {
+        openProductModal();
+    }
+});
+
+if (modalClose) {
+    modalClose.addEventListener('click', () => {
+        closeProductModal();
+    });
+}
+
+if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', () => {
+        closeProductModal();
+    });
+}
+
+function openProductModal(productId = null) {
+    const title = document.getElementById('product-modal-title');
+    const form = document.getElementById('product-form');
+    form.reset();
+    document.getElementById('product-id').value = '';
+    
+    const preview = document.getElementById('product-image-preview');
+    preview.src = '';
+    preview.style.display = 'none';
+
+    if (productId) {
+        title.textContent = 'Edit Product';
+        const p = currentProducts.find(prod => prod.id === productId);
+        if (p) {
+            document.getElementById('product-id').value = p.id;
+            document.getElementById('product-name').value = p.name || '';
+            document.getElementById('product-sku').value = p.sku || '';
+            document.getElementById('product-desc').value = p.description || '';
+            document.getElementById('product-cat').value = p.category || '';
+            document.getElementById('product-price').value = Math.round(p.price) || '';
+            document.getElementById('product-discount').value = p.discount_pct || 0;
+            document.getElementById('product-stock').value = p.stock || 0;
+            
+            let sizesStr = p.sizes || '[]';
+            try {
+                const parsed = JSON.parse(sizesStr);
+                if (Array.isArray(parsed)) sizesStr = parsed.join(', ');
+            } catch {}
+            document.getElementById('product-sizes').value = sizesStr;
+
+            let colorsStr = p.colors || '[]';
+            try {
+                const parsed = JSON.parse(colorsStr);
+                if (Array.isArray(parsed)) colorsStr = parsed.join(', ');
+            } catch {}
+            document.getElementById('product-colors').value = colorsStr;
+
+            if (p.image_url) {
+                preview.src = p.image_url.startsWith('/') ? API_BASE_URL.replace('/api/v1/admin', '') + p.image_url : p.image_url;
+                preview.style.display = 'block';
+            }
+        }
+    } else {
+        title.textContent = 'Add New Product';
+    }
+
+    productModal.classList.remove('hidden');
+    modalBackdrop.classList.remove('hidden');
+}
+
+function closeProductModal() {
+    productModal.classList.add('hidden');
+    modalBackdrop.classList.add('hidden');
+}
+
+async function toggleProductActive(id) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/products/${id}/toggle`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${adminToken}`
+            }
+        });
+        const data = await res.json();
+        if (data.success) {
+            fetchProducts();
+        } else {
+            alert('Failed to toggle status: ' + (data.message || ''));
+        }
+    } catch {
+        alert('Network error toggling status.');
+    }
+}
+
+async function deleteProduct(id) {
+    const product = currentProducts.find(p => p.id === id);
+    if (!product) return;
+    if (!confirm(`Are you sure you want to permanently delete "${product.name}"? This action cannot be undone.`)) {
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${adminToken}`
+            }
+        });
+        const data = await res.json();
+        if (data.success) {
+            fetchProducts();
+        } else {
+            alert('Failed to delete product: ' + (data.message || ''));
+        }
+    } catch {
+        alert('Network error deleting product.');
+    }
+}
+
+function editProduct(id) {
+    openProductModal(id);
+}
+
+// Product form submission
+const productForm = document.getElementById('product-form');
+if (productForm) {
+    productForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const saveBtn = document.getElementById('btn-save-product');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        const productId = document.getElementById('product-id').value;
+        const formData = new FormData();
+        formData.append('name', document.getElementById('product-name').value);
+        formData.append('sku', document.getElementById('product-sku').value);
+        formData.append('description', document.getElementById('product-desc').value);
+        formData.append('category', document.getElementById('product-cat').value);
+        formData.append('price', document.getElementById('product-price').value);
+        formData.append('discount_pct', document.getElementById('product-discount').value || '0');
+        formData.append('stock', document.getElementById('product-stock').value || '0');
+
+        const sizesVal = document.getElementById('product-sizes').value.trim();
+        let sizesJson = '[]';
+        if (sizesVal) {
+            if (sizesVal.startsWith('[') && sizesVal.endsWith(']')) {
+                sizesJson = sizesVal;
+            } else {
+                sizesJson = JSON.stringify(sizesVal.split(',').map(s => s.trim()).filter(Boolean));
+            }
+        }
+        formData.append('sizes', sizesJson);
+
+        const colorsVal = document.getElementById('product-colors').value.trim();
+        let colorsJson = '[]';
+        if (colorsVal) {
+            if (colorsVal.startsWith('[') && colorsVal.endsWith(']')) {
+                colorsJson = colorsVal;
+            } else {
+                colorsJson = JSON.stringify(colorsVal.split(',').map(c => c.trim()).filter(Boolean));
+            }
+        }
+        formData.append('colors', colorsJson);
+
+        const imgFile = document.getElementById('product-image').files[0];
+        if (imgFile) {
+            formData.append('image', imgFile);
+        }
+
+        const url = productId ? `${API_BASE_URL}/products/${productId}` : `${API_BASE_URL}/products`;
+        const method = productId ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    Authorization: `Bearer ${adminToken}`
+                },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(productId ? 'Product updated successfully!' : 'Product added successfully!');
+                closeProductModal();
+                fetchProducts();
+            } else {
+                alert('Error saving product: ' + (data.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('Error saving product:', err);
+            alert('Network error saving product.');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Product';
+        }
+    });
+}
+
+// Global exposes for inline onclick events
+window.toggleProductActive = toggleProductActive;
+window.editProduct = editProduct;
+window.deleteProduct = deleteProduct;
+window.switchView = switchView;

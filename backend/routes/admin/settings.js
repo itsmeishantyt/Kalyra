@@ -2,11 +2,18 @@ const express = require('express');
 const path    = require('path');
 const fs      = require('fs');
 const multer  = require('multer');
+const rateLimit = require('express-rate-limit');
 
 const { requireAdmin } = require('../../middleware/adminAuth');
 const R = require('../../utils/response');
 
 const router = express.Router();
+
+const adminSettingsLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: { success: false, message: 'Too many settings update requests. Please try again later.' },
+});
 
 // ── Paths ────────────────────────────────────────────────────
 const SETTINGS_FILE  = path.join(__dirname, '..', '..', 'db', 'settings.json');
@@ -59,7 +66,7 @@ router.get('/', (req, res) => {
 });
 
 // ── POST /api/v1/admin/settings/banner/:type ────────────────
-router.post('/banner/:type', requireAdmin(), (req, res, next) => {
+router.post('/banner/:type', adminSettingsLimiter, requireAdmin(), (req, res, next) => {
   const type = req.params.type;
   if (type !== 'desktop' && type !== 'mobile') {
     return R.badRequest(res, 'Invalid banner type. Must be "desktop" or "mobile"');
@@ -93,7 +100,7 @@ router.post('/banner/:type', requireAdmin(), (req, res, next) => {
 });
 
 // ── DELETE /api/v1/admin/settings/banner/:type ──────────────
-router.delete('/banner/:type', requireAdmin(), (req, res) => {
+router.delete('/banner/:type', adminSettingsLimiter, requireAdmin(), (req, res) => {
   const type = req.params.type;
   if (type !== 'desktop' && type !== 'mobile') {
     return R.badRequest(res, 'Invalid banner type. Must be "desktop" or "mobile"');

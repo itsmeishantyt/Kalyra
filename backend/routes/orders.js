@@ -3,6 +3,7 @@ const { body, query } = require('express-validator');
 const { getDb, txn } = require('../db/init');
 const { requireAuth } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
+const { sendOrderConfirmation } = require('../utils/mailer');
 const R = require('../utils/response');
 
 const router = express.Router();
@@ -199,6 +200,12 @@ router.post('/', requireAuth, [
       return orderId;
     });
     const order   = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+    const items   = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId);
+
+    // Send order confirmation email (non-blocking)
+    const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
+    sendOrderConfirmation(user, order, items)
+      .catch(err => console.error('[mailer] Order confirmation email failed:', err.message));
 
     return R.created(res, { order, orderRef }, 'Order placed successfully');
   } catch (err) { next(err); }
