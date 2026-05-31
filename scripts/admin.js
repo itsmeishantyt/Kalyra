@@ -392,7 +392,7 @@ async function toggleProduct(id, isActive) {
 // ── Product Modal ─────────────────────────────────────────────────
 async function loadCategoryDatalist() {
     try {
-        const res = await fetch('http://localhost:3000/api/v1/products/categories');
+        const res = await fetch(`${API.replace('/api/v1/admin', '')}/api/v1/products/categories`);
         if (!res.ok) return;
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
@@ -677,7 +677,7 @@ async function loadBannerPreview() {
     const mobileUpBtn  = document.getElementById('banner-upload-btn-mobile');
     const mobileCcBtn  = document.getElementById('banner-cancel-btn-mobile');
 
-    const host = 'http://localhost:3000';
+    const host = API.replace('/api/v1/admin', '');
 
     // Reset upload/cancel button visibility on preview load
     if (desktopUpBtn) desktopUpBtn.style.display = 'none';

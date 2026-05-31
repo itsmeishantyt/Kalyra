@@ -29,7 +29,7 @@ async function loadComponent(elementId, filePath) {
 
     try {
         const response = await fetch(filePath);
-        const host = window.API_HOST || 'http://localhost:3000';
+        const host = window.API_HOST || 'https://api.kalyraa.com';
         
         if (!response.ok) {
             console.warn(`Fetch to ${filePath} failed, trying absolute path...`);
@@ -75,7 +75,7 @@ async function loadAllComponents() {
 
     // Pre-fetch custom banner settings to avoid layout shift/flashing
     try {
-        const host = window.API_HOST || 'http://localhost:3000';
+        const host = window.API_HOST || 'https://api.kalyraa.com';
         const res = await fetch(`${host}/api/v1/admin/settings`);
         if (res.ok) {
             const data = await res.json();
@@ -1690,7 +1690,7 @@ async function applyCustomBanner() {
     if (!heroImg) return;
 
     try {
-        const host = window.API_HOST || 'http://localhost:3000';
+        const host = window.API_HOST || 'https://api.kalyraa.com';
         const settings = window.bannerSettings || {};
 
         const defaultSrc = '/uploads/products/diy/pearl-hat-portrait.jpg';
