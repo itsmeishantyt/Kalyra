@@ -85,8 +85,22 @@
         .summary-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
             font-size: 0.95rem;
+        }
+        .free-shipping-badge {
+            font-size: 11px;
+            color: #2d6a4f;
+            font-weight: 700;
+            background: #e8f5ee;
+            padding: 3px 8px;
+            border-radius: 100px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
         .summary-total {
             display: flex;
@@ -204,7 +218,15 @@
                     </div>
                     <div class="summary-item">
                         <span>Shipping</span>
-                        <span>Free</span>
+                        <span class="free-shipping-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13" rx="2" ry="2"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="6.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            Free
+                        </span>
                     </div>
                     <div class="summary-total">
                         <span>Total</span>

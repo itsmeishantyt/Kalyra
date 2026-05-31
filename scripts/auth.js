@@ -18,20 +18,92 @@ function showToast(msg, type = 'info') {
     `;
     document.body.appendChild(container);
   }
-  const colors = { success: '#2d6a4f', error: '#c0392b', info: '#5c6bc0', warning: '#e67e22' };
+
+  // Remove common emojis to render them in a premium way
+  const cleanMsg = msg.replace('🛍️', '').replace('🛒', '').replace('🎉', '').trim();
+
+  // Get matching SVG icon
+  const lowercaseMsg = msg.toLowerCase();
+  let iconHtml = '';
+  
+  if (lowercaseMsg.includes('cart') || lowercaseMsg.includes('🛍️') || lowercaseMsg.includes('🛒') || lowercaseMsg.includes('added to')) {
+    // Shopping Bag icon for add/remove from cart
+    iconHtml = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>`;
+  } else if (lowercaseMsg.includes('wishlist')) {
+    // Heart icon
+    iconHtml = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </svg>`;
+  } else if (type === 'success' || lowercaseMsg.includes('success') || lowercaseMsg.includes('welcome')) {
+    // Checkmark
+    iconHtml = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>`;
+  } else if (type === 'error' || lowercaseMsg.includes('fail') || lowercaseMsg.includes('could not')) {
+    // Alert Circle
+    iconHtml = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>`;
+  } else {
+    // Info Circle
+    iconHtml = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>`;
+  }
+
+  const colors = { 
+    success: '#8A9478', // Premium sage green matching --green
+    error: '#c97a7a',   // Soft rose red
+    info: '#B89B71',    // Muted gold matching --accent
+    warning: '#d4a373'  // Warm sand
+  };
+  const iconColor = colors[type] || colors.info;
+  const iconBg = iconColor + '20'; // 12.5% opacity
+
   const toast = document.createElement('div');
   toast.style.cssText = `
-    background:${colors[type] || colors.info};color:#fff;
-    padding:12px 20px;border-radius:10px;font-size:14px;font-family:var(--sans,sans-serif);
-    box-shadow:0 4px 20px rgba(0,0,0,.18);opacity:0;transform:translateY(8px);
-    transition:opacity .25s,transform .25s;pointer-events:auto;max-width:320px;line-height:1.4;
+    display:flex;align-items:center;gap:12px;
+    background:rgba(30, 26, 23, 0.96);color:#fff;
+    border:1px solid ${iconColor}40;
+    padding:12px 18px;border-radius:100px;font-size:13px;font-family:var(--sans,sans-serif);
+    font-weight:500;letter-spacing:0.02em;
+    box-shadow:0 12px 30px rgba(0,0,0,0.15), 0 0 15px ${iconColor}15;
+    opacity:0;transform:translateY(12px) scale(0.95);
+    transition:opacity .35s cubic-bezier(0.165, 0.84, 0.44, 1), transform .35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    pointer-events:auto;max-width:340px;line-height:1.3;
   `;
-  toast.textContent = msg;
+
+  toast.innerHTML = `
+    <div style="
+      display:flex;align-items:center;justify-content:center;
+      width:28px;height:28px;border-radius:50%;
+      background:${iconBg};color:${iconColor};flex-shrink:0;
+    ">
+      ${iconHtml}
+    </div>
+    <div style="flex:1;padding-right:4px;">${cleanMsg}</div>
+  `;
+
   container.appendChild(toast);
-  requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+  
+  // Trigger animation
+  requestAnimationFrame(() => { 
+    toast.style.opacity = '1'; 
+    toast.style.transform = 'translateY(0) scale(1)'; 
+  });
+
   setTimeout(() => {
-    toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)';
-    setTimeout(() => toast.remove(), 300);
+    toast.style.opacity = '0'; 
+    toast.style.transform = 'translateY(-8px) scale(0.95)';
+    setTimeout(() => toast.remove(), 350);
   }, 3500);
 }
 

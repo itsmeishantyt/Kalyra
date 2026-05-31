@@ -1,5 +1,9 @@
 // The CATALOG is now managed in scripts/catalog.js, but storefront now uses API directly.
 const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'https://api.kalyraa.com') + url : url;
+const getBadgeClass = (badgeText) => {
+    if (!badgeText) return '';
+    return 'badge-' + badgeText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+};
 
 // Component Loading System
 const components = {
@@ -25,18 +29,36 @@ async function loadComponent(elementId, filePath) {
 
     try {
         const response = await fetch(filePath);
+        const host = window.API_HOST || 'http://localhost:3000';
+        
         if (!response.ok) {
             console.warn(`Fetch to ${filePath} failed, trying absolute path...`);
             const currentDir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
             const fullPath = currentDir + filePath;
             const res2 = await fetch(fullPath);
             if (!res2.ok) throw new Error(`HTTP error! status: ${res2.status}`);
-            const html = await res2.text();
+            let html = await res2.text();
+            html = html.replace(/src=(['"])\/uploads\//g, (match, p1) => `src=${p1}${host}/uploads/`);
+            if (elementId === 'hero' && window.bannerSettings) {
+                const isMobile = window.innerWidth <= 640;
+                const customSrc = isMobile ? (window.bannerSettings.mobileBannerImage || window.bannerSettings.desktopBannerImage) : window.bannerSettings.desktopBannerImage;
+                if (customSrc) {
+                    html = html.replace(/\/uploads\/products\/diy\/pearl-hat-portrait\.jpg/g, `${host}${customSrc}`);
+                }
+            }
             element.innerHTML = html;
             return true;
         }
 
-        const html = await response.text();
+        let html = await response.text();
+        html = html.replace(/src=(['"])\/uploads\//g, (match, p1) => `src=${p1}${host}/uploads/`);
+        if (elementId === 'hero' && window.bannerSettings) {
+            const isMobile = window.innerWidth <= 640;
+            const customSrc = isMobile ? (window.bannerSettings.mobileBannerImage || window.bannerSettings.desktopBannerImage) : window.bannerSettings.desktopBannerImage;
+            if (customSrc) {
+                html = html.replace(/\/uploads\/products\/diy\/pearl-hat-portrait\.jpg/g, `${host}${customSrc}`);
+            }
+        }
         element.innerHTML = html;
         console.log(`Injected ${elementId}, html length: ${html.length}, grid found: ${!!element.querySelector('#shop-items-container') || !!element.querySelector('.products-grid')}`);
         return true;
@@ -50,6 +72,18 @@ async function loadAllComponents() {
     const isShopPage = window.location.href.toLowerCase().includes('shop.html') || window.location.pathname.endsWith('/shop') || !!document.getElementById('shop-items-container');
 
     console.log('Loading components...', { pathname: window.location.pathname, isShopPage });
+
+    // Pre-fetch custom banner settings to avoid layout shift/flashing
+    try {
+        const host = window.API_HOST || 'http://localhost:3000';
+        const res = await fetch(`${host}/api/v1/admin/settings`);
+        if (res.ok) {
+            const data = await res.json();
+            window.bannerSettings = data?.data || {};
+        }
+    } catch (e) {
+        console.warn('Pre-fetch banner settings failed:', e);
+    }
 
     const loadPromises = Object.keys(components).map(id => {
         let path = components[id];
@@ -366,9 +400,10 @@ function initShopFilters() {
 
             // Format price
             const price = typeof p.price === 'number' ? p.price : 0;
-
-            card.innerHTML = `
+            const badgeHtml = p.badge ? `<div class="product-card-badge ${getBadgeClass(p.badge)}">${p.badge}</div>` : '';
+                        card.innerHTML = `
                 <div class="product-img-wrap">
+                    ${badgeHtml}
                     <img src="${getImageUrl(p.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
                     <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
                 </div>
@@ -376,7 +411,52 @@ function initShopFilters() {
                 <h3 class="product-name">${p.name}</h3>
                 <p class="product-price">₹${price.toLocaleString()}</p>
             `;
+            
             card.onclick = () => window.location.href = `product.html?id=${p.id}`;
+
+            const addBtn = card.querySelector('.product-add');
+            if (addBtn) {
+                addBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    let size = null;
+                    let color = null;
+                    try {
+                        if (p.sizes) {
+                            const parsedSizes = typeof p.sizes === 'string' ? JSON.parse(p.sizes) : p.sizes;
+                            if (Array.isArray(parsedSizes) && parsedSizes.length > 0) {
+                                size = parsedSizes[0];
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error parsing sizes:', err);
+                    }
+                    try {
+                        if (p.colors) {
+                            const parsedColors = typeof p.colors === 'string' ? JSON.parse(p.colors) : p.colors;
+                            if (Array.isArray(parsedColors) && parsedColors.length > 0) {
+                                color = parsedColors[0];
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error parsing colors:', err);
+                    }
+                    
+                    try {
+                        await window.KalyraCart.addItem(p.id, 1, size, color, {
+                            name: p.name,
+                            price: p.price,
+                            image_url: p.image_url
+                        });
+                        addBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color:#2ecc71;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                        setTimeout(() => {
+                            addBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`;
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Error adding to cart:', err);
+                    }
+                };
+            }
+
             cardsContainer.appendChild(card);
         });
     };
@@ -384,15 +464,24 @@ function initShopFilters() {
     const applyFiltersAndSort = async () => {
         try {
             const query = {};
-            if (filters.categories.length > 0) query.category = filters.categories.join(',');
+            const isApparelPage = window.location.href.toLowerCase().includes('apparel.html');
+            const isShopPage = window.location.href.toLowerCase().includes('shop.html');
+
+            if (isApparelPage) {
+                query.product_type = 'apparel';
+            } else if (isShopPage) {
+                query.product_type = 'shop';
+            }
+
+            if (filters.categories.length > 0) {
+                query.category = filters.categories.join(',');
+            }
+
             if (filters.maxPrice < Number.MAX_VALUE) query.max_price = filters.maxPrice;
             if (filters.searchTerm) query.search = filters.searchTerm;
-            if (filters.sortBy === 'price-low') query.sort = 'price_asc';
-            if (filters.sortBy === 'price-high') query.sort = 'price_desc';
-            if (filters.sortBy === 'best-selling') query.sort = 'best_selling';
-            if (filters.sortBy === 'trending') query.sort = 'trending';
-            if (filters.sortBy === 'top-rated') query.sort = 'top_rated';
-            if (filters.sortBy === 'new-arrivals') query.sort = 'new_arrivals';
+            if (filters.sortBy === 'price-low') { query.sort = 'price'; query.order = 'asc'; }
+            else if (filters.sortBy === 'price-high') { query.sort = 'price'; query.order = 'desc'; }
+            else if (['best-selling', 'trending', 'top-rated', 'new-arrivals'].includes(filters.sortBy)) { query.sort = filters.sortBy; }
 
             cardsContainer.innerHTML = '<div class="loader" style="grid-column: 1/-1; text-align: center; padding: 50px;">Loading products...</div>';
 
@@ -402,8 +491,8 @@ function initShopFilters() {
             if (filters.sortBy === 'alphabet-za') products.sort((a, b) => b.name.localeCompare(a.name));
 
             // Limit to 4 products on the home page
-            const isShopPage = window.location.href.toLowerCase().includes('shop.html') || window.location.pathname.endsWith('/shop');
-            if (!isShopPage) {
+            const isShopOrApparel = window.location.href.toLowerCase().includes('shop.html') || window.location.href.toLowerCase().includes('apparel.html');
+            if (!isShopOrApparel) {
                 products = products.slice(0, 4);
             }
 
@@ -500,22 +589,22 @@ function initMobileSearch() {
 
 async function loadGalleryStrip() {
     const galleryImages = [
-        'assets/floral-gem-art.jpg',
-        'assets/anklet-embroidery-tote.jpg',
-        'assets/mirror-butterfly-art.jpg',
-        'assets/mandala-art-sketchbook.jpg',
-        'assets/floral-resin-coasters.jpg',
-        'assets/flower-shaped-resin-coasters.jpg',
-        'assets/black-resin-name-plate.jpg',
-        'assets/doctor-resin-name-plate.jpg',
-        'assets/ceo-resin-name-plate.jpg',
-        'assets/wedding-resin-plate.jpg'
+        '/uploads/products/diy/floral-gem-art.jpg',
+        '/uploads/products/diy/anklet-embroidery-tote.jpg',
+        '/uploads/products/diy/mirror-butterfly-art.jpg',
+        '/uploads/products/diy/mandala-art-sketchbook.jpg',
+        '/uploads/products/diy/floral-resin-coasters.jpg',
+        '/uploads/products/diy/flower-shaped-resin-coasters.jpg',
+        '/uploads/products/diy/black-resin-name-plate.jpg',
+        '/uploads/products/diy/doctor-resin-name-plate.jpg',
+        '/uploads/products/diy/ceo-resin-name-plate.jpg',
+        '/uploads/products/diy/wedding-resin-plate.jpg'
     ];
 
     // Double the images for seamless loop
     const itemsHTML = [...galleryImages, ...galleryImages].map(src => `
         <div class="gallery-item">
-            <img src="${src}" alt="Kalyra Art">
+            <img src="${getImageUrl(src)}" alt="Kalyra Art">
         </div>
     `).join('');
 
@@ -943,6 +1032,19 @@ async function renderPDP(container, product) {
 
     const prodImg = getImageUrl(product.image_url) || product.img || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product';
 
+    // Parse product sizes
+    let sizes = [];
+    if (product.sizes) {
+        try {
+            sizes = typeof product.sizes === 'string' ? JSON.parse(product.sizes) : product.sizes;
+        } catch (e) {
+            console.error('Failed to parse product sizes:', e);
+        }
+    }
+    if (!Array.isArray(sizes) || sizes.length === 0) {
+        sizes = ['Standard', 'Premium Large', 'Custom Size'];
+    }
+
     container.innerHTML = `
         <div class="pdp-wrapper">
             <div class="pdp-container">
@@ -984,6 +1086,7 @@ async function renderPDP(container, product) {
                 
                 <div class="pdp-info">
                     <div class="pdp-category">${product.category ? product.category.charAt(0).toUpperCase() + product.category.slice(1) : ''} Collection</div>
+                    ${product.badge ? `<div class="product-card-badge ${getBadgeClass(product.badge)}" style="margin-top: 10px; margin-bottom: 6px;">${product.badge}</div>` : ''}
                     <h1 class="pdp-title">${product.name}</h1>
                     
                     <p class="pdp-price">₹${(typeof product.price === 'number' ? product.price : 0).toLocaleString()}</p>
@@ -993,9 +1096,9 @@ async function renderPDP(container, product) {
                         <div class="option-row">
                             <span class="option-label">Size Option</span>
                             <div class="size-pills">
-                                <button class="size-pill active">Standard</button>
-                                <button class="size-pill">Premium Large</button>
-                                <button class="size-pill">Custom Size</button>
+                                ${sizes.map((size, idx) => `
+                                    <button class="size-pill ${idx === 0 ? 'active' : ''}">${size}</button>
+                                `).join('')}
                             </div>
                         </div>
                     </div>
@@ -1153,6 +1256,14 @@ async function renderPDP(container, product) {
         });
     });
 
+    // Size pill selection
+    container.querySelectorAll('.size-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            container.querySelectorAll('.size-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+        });
+    });
+    
     // Action Logic — dispatch pdp-ready so cart.js wires the button
     window.dispatchEvent(new CustomEvent('kalyra:pdp-ready', { detail: { product } }));
 
@@ -1167,6 +1278,67 @@ async function renderPDP(container, product) {
         window.location.href = 'cart.html';
     });
 
+    // Share Button Event Listener
+    const shareBtn = container.querySelector('.btn-share-icon');
+    shareBtn?.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            
+            // Visual feedback on the button itself
+            shareBtn.classList.add('copied');
+            const originalHTML = shareBtn.innerHTML;
+            shareBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+            
+            // Create a floating premium toast
+            let toast = document.getElementById('kalyra-pdp-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'kalyra-pdp-toast';
+                toast.style.position = 'fixed';
+                toast.style.bottom = '40px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%) translateY(20px)';
+                toast.style.background = 'rgba(30, 26, 23, 0.95)';
+                toast.style.color = '#fff';
+                toast.style.padding = '14px 28px';
+                toast.style.borderRadius = '100px';
+                toast.style.fontFamily = "var(--sans), sans-serif";
+                toast.style.fontSize = '13px';
+                toast.style.letterSpacing = '0.05em';
+                toast.style.boxShadow = '0 10px 40px rgba(0,0,0,0.15)';
+                toast.style.opacity = '0';
+                toast.style.transition = 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)';
+                toast.style.zIndex = '100000';
+                toast.style.display = 'flex';
+                toast.style.alignItems = 'center';
+                toast.style.gap = '10px';
+                document.body.appendChild(toast);
+            }
+            
+            toast.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B89B71" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Link copied to clipboard!</span>
+            `;
+            
+            // Show toast
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+            
+            // Hide toast and reset button state after 2.5s
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(20px)';
+                shareBtn.classList.remove('copied');
+                shareBtn.innerHTML = originalHTML;
+            }, 2500);
+            
+        } catch (err) {
+            console.error('Failed to copy link:', err);
+        }
+    });
+    
     // Custom Cursor Logic for Desktop
     const mainImgContainer = document.querySelector('.pdp-main-img');
     const customCursor = document.getElementById('pdp-custom-cursor');
@@ -1499,6 +1671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAllComponents().then(() => {
         console.log('Boot sequence complete.');
         initGoogleAuth();
+        applyCustomBanner();   // swap hero image if admin has set a custom one
 
         // Final check for page types
         const path = window.location.pathname;
@@ -1510,3 +1683,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// ── Custom Banner ────────────────────────────────────────────────────
+async function applyCustomBanner() {
+    // Only relevant on the homepage
+    const heroImg = document.querySelector('.hero-right img');
+    if (!heroImg) return;
+
+    try {
+        const host = window.API_HOST || 'http://localhost:3000';
+        const settings = window.bannerSettings || {};
+
+        const defaultSrc = '/uploads/products/diy/pearl-hat-portrait.jpg';
+
+        const updateImage = () => {
+            const isMobile = window.innerWidth <= 640;
+            let src = null;
+            if (isMobile) {
+                src = settings.mobileBannerImage || settings.desktopBannerImage;
+            } else {
+                src = settings.desktopBannerImage;
+            }
+
+            if (src) {
+                heroImg.src = `${host}${src}`;
+            } else {
+                heroImg.src = `${host}${defaultSrc}`;
+            }
+            heroImg.alt = 'Kalyra Banner';
+        };
+
+        // Initial apply
+        updateImage();
+
+        // Listen to window resize to swap banner dynamically if viewport crosses the breakpoint
+        window.addEventListener('resize', updateImage);
+    } catch (_) {
+        // Silently fail — default image remains
+    }
+}

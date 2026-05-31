@@ -30,6 +30,32 @@ function initDatabase() {
   const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
   database.exec(schema);
 
+  // Alter table to add product_type if it doesn't exist
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN product_type TEXT DEFAULT 'shop'");
+  } catch (err) {
+    // Column already exists, safe to ignore
+  }
+
+  // Alter table to add badge if it doesn't exist
+  try {
+    database.exec("ALTER TABLE products ADD COLUMN badge TEXT");
+  } catch (err) {
+    // Column already exists, safe to ignore
+  }
+
+  // Backfill product_type for existing rows that were seeded before the column existed
+  // Products with apparel-style SKUs or apparel categories should be typed as 'apparel'
+  database.exec(`
+    UPDATE products SET product_type = 'apparel'
+    WHERE product_type IS NULL OR (
+      product_type = 'shop' AND (
+        sku LIKE 'KLY-AP%'
+        OR category IN ('Dresses','Bottomwear','Kurtas','Outerwear','Topwear')
+      )
+    )
+  `);
+
   return database;
 }
 

@@ -1,132 +1,121 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const multer = require('multer');
+const path    = require('path');
+const fs      = require('fs');
+const multer  = require('multer');
 
-const { getDb } = require('../../db/init');
-const { requireAdmin, audit } = require('../../middleware/adminAuth');
+const { requireAdmin } = require('../../middleware/adminAuth');
 const R = require('../../utils/response');
 
 const router = express.Router();
 
-// Ensure upload directory exists
-const settingsUploadDir = path.join(__dirname, '..', '..', 'uploads', 'settings');
-if (!fs.existsSync(settingsUploadDir)) {
-  fs.mkdirSync(settingsUploadDir, { recursive: true });
+// ── Paths ────────────────────────────────────────────────────
+const SETTINGS_FILE  = path.join(__dirname, '..', '..', 'db', 'settings.json');
+const BANNER_DIR     = path.join(__dirname, '..', '..', '..', 'assets', 'imgs');
+
+if (!fs.existsSync(BANNER_DIR)) fs.mkdirSync(BANNER_DIR, { recursive: true });
+
+// Ensure settings file exists with correct structure
+if (!fs.existsSync(SETTINGS_FILE)) {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({ desktopBannerImage: null, mobileBannerImage: null }, null, 2));
+} else {
+  try {
+    const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    if (data.bannerImage !== undefined) {
+      // Migrate legacy single banner setting
+      data.desktopBannerImage = data.bannerImage;
+      data.mobileBannerImage = null;
+      delete data.bannerImage;
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2));
+    }
+  } catch (_) {}
 }
 
-// Multer storage config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, settingsUploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${file.fieldname}_${Date.now()}${ext}`);
-  }
-});
+// ── Helpers ──────────────────────────────────────────────────
+function readSettings()          { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')); }
+function writeSettings(data)     { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2)); }
 
+// ── Multer ───────────────────────────────────────────────────
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, BANNER_DIR),
+  filename:    (req, file, cb) => {
+    const type = req.params.type === 'mobile' ? 'mobile' : 'desktop';
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `banner_${type}_${Date.now()}${ext}`);
+  },
+});
 const upload = multer({
   storage,
   limits: { fileSize: (Number(process.env.MAX_FILE_SIZE_MB) || 5) * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only JPG, PNG, WebP images are allowed'));
-    }
-  }
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only JPG, PNG, WebP images are allowed'));
+  },
 });
 
-// Configure multiple image fields
-const uploadFields = upload.fields([
-  { name: 'hero_image', maxCount: 1 },
-  { name: 'cta_image_1', maxCount: 1 },
-  { name: 'cta_image_2', maxCount: 1 },
-  { name: 'cta_image_3', maxCount: 1 }
-]);
+// ── GET /api/v1/admin/settings ───────────────────────────────
+router.get('/', (req, res) => {
+  const settings = readSettings();
+  return R.success(res, settings);
+});
 
-// PUT /api/v1/admin/settings
-router.put('/', requireAdmin(['superadmin', 'manager']), (req, res, next) => {
-  uploadFields(req, res, (err) => {
-    if (err) return next(err);
-    try {
-      const db = getDb();
-      const updates = { ...req.body };
+// ── POST /api/v1/admin/settings/banner/:type ────────────────
+router.post('/banner/:type', requireAdmin(), (req, res, next) => {
+  const type = req.params.type;
+  if (type !== 'desktop' && type !== 'mobile') {
+    return R.badRequest(res, 'Invalid banner type. Must be "desktop" or "mobile"');
+  }
+  next();
+}, upload.single('banner'), (req, res) => {
+  if (!req.file) return R.badRequest(res, 'No image file provided');
 
-      // Helper function to update setting in db
-      const updateSetting = (key, value) => {
-        db.prepare(`
-          INSERT INTO settings (key, value)
-          VALUES (?, ?)
-          ON CONFLICT(key) DO UPDATE SET value = excluded.value
-        `).run(key, value);
-      };
+  const type = req.params.type;
+  const newFilename = req.file.filename;
 
-      // Process uploaded files and save their URL paths
-      if (req.files) {
-        if (req.files.hero_image) {
-          const file = req.files.hero_image[0];
-          const old = db.prepare('SELECT value FROM settings WHERE key = ?').get('hero_image_url');
-          updates.hero_image_url = `/uploads/settings/${file.filename}`;
-          updateSetting('hero_image_url', updates.hero_image_url);
-          // Delete old file
-          if (old && old.value && old.value.startsWith('/uploads/settings/')) {
-            const oldPath = path.join(__dirname, '..', '..', old.value);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-          }
-        }
-        if (req.files.cta_image_1) {
-          const file = req.files.cta_image_1[0];
-          const old = db.prepare('SELECT value FROM settings WHERE key = ?').get('cta_image_1');
-          updates.cta_image_1 = `/uploads/settings/${file.filename}`;
-          updateSetting('cta_image_1', updates.cta_image_1);
-          if (old && old.value && old.value.startsWith('/uploads/settings/')) {
-            const oldPath = path.join(__dirname, '..', '..', old.value);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-          }
-        }
-        if (req.files.cta_image_2) {
-          const file = req.files.cta_image_2[0];
-          const old = db.prepare('SELECT value FROM settings WHERE key = ?').get('cta_image_2');
-          updates.cta_image_2 = `/uploads/settings/${file.filename}`;
-          updateSetting('cta_image_2', updates.cta_image_2);
-          if (old && old.value && old.value.startsWith('/uploads/settings/')) {
-            const oldPath = path.join(__dirname, '..', '..', old.value);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-          }
-        }
-        if (req.files.cta_image_3) {
-          const file = req.files.cta_image_3[0];
-          const old = db.prepare('SELECT value FROM settings WHERE key = ?').get('cta_image_3');
-          updates.cta_image_3 = `/uploads/settings/${file.filename}`;
-          updateSetting('cta_image_3', updates.cta_image_3);
-          if (old && old.value && old.value.startsWith('/uploads/settings/')) {
-            const oldPath = path.join(__dirname, '..', '..', old.value);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-          }
-        }
+  // Delete old banner files of the same type
+  try {
+    fs.readdirSync(BANNER_DIR).forEach(f => {
+      if (f.startsWith(`banner_${type}_`) && f !== newFilename) {
+        fs.unlinkSync(path.join(BANNER_DIR, f));
       }
+    });
+  } catch (_) {}
 
-      // Process text settings
-      if (req.body.hero_title !== undefined) updateSetting('hero_title', req.body.hero_title);
-      if (req.body.hero_sub !== undefined) updateSetting('hero_sub', req.body.hero_sub);
-      if (req.body.cta_title !== undefined) updateSetting('cta_title', req.body.cta_title);
+  const imageUrl = `/assets/imgs/${newFilename}`;
+  const settings = readSettings();
+  if (type === 'mobile') {
+    settings.mobileBannerImage = imageUrl;
+  } else {
+    settings.desktopBannerImage = imageUrl;
+  }
+  writeSettings(settings);
 
-      audit(db, req.admin.id, 'UPDATE_SETTINGS', 'settings', null, { keysUpdated: Object.keys(updates) }, req.ip);
+  return R.success(res, { bannerImage: imageUrl }, `Hero ${type} banner image updated`);
+});
 
-      // Fetch all updated settings to return
-      const rows = db.prepare('SELECT key, value FROM settings').all();
-      const settings = {};
-      rows.forEach(row => {
-        settings[row.key] = row.value;
-      });
+// ── DELETE /api/v1/admin/settings/banner/:type ──────────────
+router.delete('/banner/:type', requireAdmin(), (req, res) => {
+  const type = req.params.type;
+  if (type !== 'desktop' && type !== 'mobile') {
+    return R.badRequest(res, 'Invalid banner type. Must be "desktop" or "mobile"');
+  }
 
-      return R.success(res, settings, 'Website settings updated successfully');
-    } catch (err2) {
-      next(err2);
-    }
-  });
+  try {
+    fs.readdirSync(BANNER_DIR).forEach(f => {
+      if (f.startsWith(`banner_${type}_`)) {
+        fs.unlinkSync(path.join(BANNER_DIR, f));
+      }
+    });
+  } catch (_) {}
+
+  const settings = readSettings();
+  if (type === 'mobile') {
+    settings.mobileBannerImage = null;
+  } else {
+    settings.desktopBannerImage = null;
+  }
+  writeSettings(settings);
+
+  return R.success(res, null, `Hero ${type} banner image removed`);
 });
 
 module.exports = router;
