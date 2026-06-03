@@ -4,6 +4,7 @@ const { getDb, txn } = require('../../db/init');
 const { requireAdmin, audit } = require('../../middleware/adminAuth');
 const { validate } = require('../../middleware/validate');
 const { razorpay } = require('../../utils/razorpay');
+const { sendOrderStatusUpdate, sendOrderCancellation } = require('../../utils/mailer');
 const R = require('../../utils/response');
 
 const router = express.Router();
@@ -89,6 +90,18 @@ router.patch('/:id/status', requireAdmin(['superadmin', 'manager']), [
       order_ref: order.order_ref, old_status: order.status, new_status: status,
     }, req.ip);
 
+    // Send order update email (non-blocking)
+    const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(order.user_id);
+    if (user) {
+      if (status === 'cancelled') {
+        sendOrderCancellation(user, order)
+          .catch(err => console.error('[mailer] Order cancellation email failed:', err.message));
+      } else {
+        sendOrderStatusUpdate(user, { ...order, status }, status)
+          .catch(err => console.error('[mailer] Order status update email failed:', err.message));
+      }
+    }
+
     return R.success(res, { id: order.id, status }, 'Order status updated');
   } catch (err) { next(err); }
 });
@@ -128,6 +141,13 @@ router.post('/:id/refund', requireAdmin(['superadmin']), [
     audit(db, req.admin.id, 'REFUND_ORDER', 'order', order.id, {
       order_ref: order.order_ref, amount: order.total_amount, reason: req.body.reason,
     }, req.ip);
+
+    // Send refund confirmation email (non-blocking)
+    const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(order.user_id);
+    if (user) {
+      sendOrderStatusUpdate(user, { ...order, status: 'refunded' }, 'refunded')
+        .catch(err => console.error('[mailer] Order refund email failed:', err.message));
+    }
 
     return R.success(res, null, 'Order refunded successfully');
   } catch (err) { next(err); }

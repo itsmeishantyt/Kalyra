@@ -3,7 +3,7 @@ const { body, query } = require('express-validator');
 const { getDb, txn } = require('../db/init');
 const { requireAuth } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
-const { sendOrderConfirmation } = require('../utils/mailer');
+const { sendOrderConfirmation, sendOrderCancellation } = require('../utils/mailer');
 const R = require('../utils/response');
 
 const router = express.Router();
@@ -233,6 +233,10 @@ router.patch('/:id/cancel', requireAuth, (req, res, next) => {
       // Decrement promo uses
       if (order.promocode_id) db.prepare('UPDATE promocodes SET uses_count = MAX(0, uses_count - 1) WHERE id = ?').run(order.promocode_id);
     });
+
+    // Send cancellation email
+    sendOrderCancellation(req.user, order)
+      .catch(err => console.error('[mailer] Order cancellation email failed:', err.message));
 
     return R.success(res, null, 'Order cancelled');
   } catch (err) { next(err); }

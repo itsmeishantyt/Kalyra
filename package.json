@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Kalyra E-Commerce Frontend",
   "scripts": {
-    "dev": "live-server --port=3001 --host=localhost --ignorePattern=backend"
+    "dev": "npx -y concurrently \"npm run dev --prefix backend\" \"live-server --port=3001 --host=localhost --ignorePattern=backend\""
   },
   "devDependencies": {
     "live-server": "^1.2.2"

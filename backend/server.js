@@ -1,7 +1,7 @@
 require('dotenv').config();
 const http = require('http');
 const app = require('./app');
-const { initDatabase } = require('./db/init');
+const { initDatabase, getDb } = require('./db/init');
 
 const PORT = process.env.PORT || 3000; // Load port from env (restart)
 
@@ -11,6 +11,25 @@ const PORT = process.env.PORT || 3000; // Load port from env (restart)
     // 1. Ensure SQLite schema is up-to-date
     initDatabase();
     console.log('✅  Database initialised');
+
+    // Auto-seed if database is empty
+    const db = getDb();
+    let count = 0;
+    try {
+      count = db.prepare('SELECT COUNT(*) as n FROM products').get().n;
+    } catch (dbErr) {
+      console.warn('⚠️  Could not count products, skipping auto-seed check:', dbErr.message);
+    }
+    if (count === 0) {
+      console.log('🌱  Products table is empty. Running auto-seed...');
+      try {
+        const { seed } = require('./db/seed');
+        await seed();
+        console.log('🌱  Auto-seed completed successfully.');
+      } catch (seedErr) {
+        console.error('❌  Auto-seed failed:', seedErr);
+      }
+    }
 
     // 2. Start HTTP server
     const server = http.createServer(app);

@@ -157,6 +157,54 @@ router.post('/register', authLimiter, [
   } catch (err) { next(err); }
 });
 
+
+// ─────────────────────────────────────────────────────────────
+//  POST /api/v1/auth/google-login
+// ─────────────────────────────────────────────────────────────
+router.post('/google-login', authLimiter, [
+  body('email').trim().isEmail().normalizeEmail(),
+  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('picture').optional().trim(),
+], validate, async (req, res, next) => {
+  try {
+    const { email, name, picture } = req.body;
+    const db = getDb();
+
+    // Check if user exists
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
+    if (!user) {
+      // Create user dynamically (password-less)
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const hash = await bcrypt.hash(randomPassword, 12);
+      const result = db.prepare(`
+        INSERT INTO users (name, email, password_hash, profile_photo)
+        VALUES (?, ?, ?, ?)
+      `).run(name, email, hash, picture || null);
+      const userId = result.lastInsertRowid;
+      user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    }
+
+    if (user.status === 'suspended') {
+      return R.forbidden(res, 'Your account has been suspended. Contact support@kalyra.com');
+    }
+
+    const refreshToken = signRefresh({ userId: user.id, email: user.email });
+    const accessToken  = signAccess({ userId: user.id, email: user.email });
+
+    db.prepare(`
+      INSERT INTO sessions (user_id, refresh_token, ip_address, user_agent, expires_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(user.id, refreshToken, req.ip, req.headers['user-agent'] || null, refreshExpiresAt());
+
+    const safeUser = { id: user.id, name: user.name, email: user.email,
+                       phone: user.phone, profile_photo: user.profile_photo,
+                       status: user.status, created_at: user.created_at };
+
+    return R.success(res, { user: safeUser, accessToken, refreshToken }, 'Login successful');
+  } catch (err) { next(err); }
+});
+
 // ─────────────────────────────────────────────────────────────
 //  POST /api/v1/auth/login
 // ─────────────────────────────────────────────────────────────

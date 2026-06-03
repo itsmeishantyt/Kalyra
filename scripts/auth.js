@@ -159,32 +159,43 @@ function updateNavbarUserState() {
         : user.email[0].toUpperCase();
 
       const photoHtml = user.profile_photo
-        ? `<img src="${user.profile_photo}" alt="${user.name}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+        ? `<img src="${user.profile_photo.startsWith('http') ? user.profile_photo : (window.API_HOST || 'https://api.kalyraa.com') + user.profile_photo}" alt="${user.name}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
         : `<div style="width:32px;height:32px;border-radius:50%;background:var(--stitch-gold,#B89B71);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:var(--sans,sans-serif);">${initials}</div>`;
 
       link.href = 'javascript:void(0)';
       link.setAttribute('aria-label', 'My Account');
-      link.innerHTML = `
-        <div class="nav-user-avatar" style="position:relative;">
-          ${photoHtml}
-          <div id="nav-user-dropdown" style="
-            display:none;position:absolute;top:calc(100% + 12px);right:0;
-            background:#fff;border:1px solid #ece8e0;border-radius:12px;
-            box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:186px;
-            padding:8px 0;z-index:9999;font-family:var(--sans,sans-serif);
-          ">
-            <div style="padding:12px 16px 8px;border-bottom:1px solid #f3f0ea;">
-              <div style="font-weight:600;font-size:14px;color:#222;">${user.name || 'My Account'}</div>
-              <div style="font-size:12px;color:#888;margin-top:2px;">${user.email}</div>
-            </div>
-            <a href="orders.html" style="display:block;padding:10px 16px;font-size:14px;color:#555;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">My Orders</a>
-            <a href="wishlist.html" style="display:block;padding:10px 16px;font-size:14px;color:#555;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">Wishlist</a>
-            <a href="profile.html" style="display:block;padding:10px 16px;font-size:14px;color:#555;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">Profile Settings</a>
-            <div style="border-top:1px solid #f3f0ea;margin-top:4px;"></div>
-            <a href="javascript:void(0)" id="nav-logout-btn" style="display:block;padding:10px 16px;font-size:14px;color:#c0392b;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">Sign Out</a>
+      link.innerHTML = `<div class="nav-user-avatar">${photoHtml}</div>`;
+
+      // Dynamically wrap the link in a wrapper div to avoid nesting anchor tags
+      let wrapper = link.parentElement;
+      if (!wrapper || !wrapper.classList.contains('nav-user-wrapper')) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'nav-user-wrapper';
+        wrapper.style.cssText = 'position:relative; display:inline-block;';
+        link.parentNode.insertBefore(wrapper, link);
+        wrapper.appendChild(link);
+      }
+
+      // Inject the dropdown into the wrapper as a sibling of the link
+      wrapper.querySelector('#nav-user-dropdown')?.remove();
+      wrapper.insertAdjacentHTML('beforeend', `
+        <div id="nav-user-dropdown" style="
+          display:none;position:absolute;top:calc(100% + 12px);right:0;
+          background:#fff;border:1px solid #ece8e0;border-radius:12px;
+          box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:186px;
+          padding:8px 0;z-index:9999;font-family:var(--sans,sans-serif);
+        ">
+          <div style="padding:12px 16px 8px;border-bottom:1px solid #f3f0ea;">
+            <div style="font-weight:600;font-size:14px;color:#222;">${user.name || 'My Account'}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">${user.email}</div>
           </div>
+          <a href="orders.html" style="display:block;padding:10px 16px;font-size:14px;color:#555;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">My Orders</a>
+          <a href="wishlist.html" style="display:block;padding:10px 16px;font-size:14px;color:#555;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">Wishlist</a>
+          <a href="profile.html" style="display:block;padding:10px 16px;font-size:14px;color:#555;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">Profile Settings</a>
+          <div style="border-top:1px solid #f3f0ea;margin-top:4px;"></div>
+          <a href="javascript:void(0)" id="nav-logout-btn" style="display:block;padding:10px 16px;font-size:14px;color:#c0392b;text-decoration:none;" onmouseover="this.style.background='#faf8f4'" onmouseout="this.style.background='transparent'">Sign Out</a>
         </div>
-      `;
+      `);
     });
   } else {
     userIconLinks.forEach(link => {
@@ -193,6 +204,14 @@ function updateNavbarUserState() {
       link.href = '#login';
       link.setAttribute('aria-label', 'User Account');
       link.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+
+      // Remove wrapper and dropdown
+      const wrapper = link.closest('.nav-user-wrapper');
+      if (wrapper) {
+        wrapper.querySelector('#nav-user-dropdown')?.remove();
+        wrapper.parentNode.insertBefore(link, wrapper);
+        wrapper.remove();
+      }
     });
   }
 }
@@ -367,17 +386,19 @@ const KalyraAuth = {
   },
 
   async loginWithGoogle(googleUser) {
-    const mockUser = {
-      id: googleUser.sub || 'google_' + Date.now(),
-      name: googleUser.name,
-      email: googleUser.email,
-      profile_photo: googleUser.picture || null,
-      provider: 'google',
-    };
-    KalyraToken.setUser(mockUser);
-    localStorage.setItem('kalyra_social_session', '1');
+    const res = await apiFetch('/auth/google-login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: googleUser.email,
+        name: googleUser.name,
+        picture: googleUser.picture || googleUser.profile_photo || null
+      })
+    });
+    KalyraToken.setAccess(res.data.accessToken);
+    KalyraToken.setRefresh(res.data.refreshToken);
+    KalyraToken.setUser(res.data.user);
     window.dispatchEvent(new Event('kalyra:login'));
-    return mockUser;
+    return res.data.user;
   },
 
   isLoggedIn() { return KalyraToken.isLoggedIn(); },
@@ -749,7 +770,8 @@ document.addEventListener('click', e => {
     const user = KalyraToken.getUser();
     if (!user) return; // Let standard login modal handlers process it
     e.preventDefault();
-    const dd = document.getElementById('nav-user-dropdown');
+    const wrapper = avatarLink.closest('.nav-user-wrapper');
+    const dd = wrapper ? wrapper.querySelector('#nav-user-dropdown') : document.getElementById('nav-user-dropdown');
     if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
   }
 });
@@ -757,8 +779,8 @@ document.addEventListener('click', e => {
 // Close dropdown when clicking outside
 document.addEventListener('click', e => {
   const dd = document.getElementById('nav-user-dropdown');
-  const avatarLink = document.querySelector('.nav-user-icon-link');
-  if (dd && avatarLink && !avatarLink.contains(e.target)) {
+  const wrapper = document.querySelector('.nav-user-wrapper');
+  if (dd && wrapper && !wrapper.contains(e.target)) {
     dd.style.display = 'none';
   }
 });

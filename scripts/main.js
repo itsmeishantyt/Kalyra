@@ -1,3 +1,23 @@
+// Immediately inject global loader to prevent layout flashing
+(function() {
+    const loader = document.createElement('div');
+    loader.id = 'global-loader';
+    loader.innerHTML = `
+        <div class="loader-content">
+            <div class="loader-logo">KALYRA</div>
+            <div class="loader-spinner"></div>
+        </div>
+    `;
+    if (document.body) {
+        document.body.appendChild(loader);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.appendChild(loader);
+        });
+    }
+    window.KalyraLoader = loader;
+})();
+
 // The CATALOG is now managed in scripts/catalog.js, but storefront now uses API directly.
 const getImageUrl = (url) => url?.startsWith('/') ? (window.API_HOST || 'https://api.kalyraa.com') + url : url;
 const getBadgeClass = (badgeText) => {
@@ -1680,6 +1700,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // initShopFilters() is already called in loadAllComponents via waitForGrid()
         // initApparelPage is no longer needed.
         if (isProductPage) initProductPage();
+
+        // Fade out and remove the global loader to reveal the page
+        if (window.KalyraLoader) {
+            window.KalyraLoader.classList.add('fade-out');
+            setTimeout(() => window.KalyraLoader.remove(), 400);
+        }
     });
 });
 

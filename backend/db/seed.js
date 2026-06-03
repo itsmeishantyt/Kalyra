@@ -409,10 +409,15 @@ async function seed() {
   console.log(`   ✅  ${promos.length} promo codes seeded  (WELCOME10 · FLAT200 · SUMMER25)`);
 
   console.log('\n✨  Seeding complete!');
-  process.exit(0);
 }
 
-seed().catch(err => {
-  console.error('❌  Seeding failed:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  seed()
+    .then(() => process.exit(0))
+    .catch(err => {
+      console.error('❌  Seeding failed:', err);
+      process.exit(1);
+    });
+}
+
+module.exports = { seed };

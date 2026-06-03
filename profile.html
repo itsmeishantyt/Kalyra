@@ -98,7 +98,7 @@
 <script src="scripts/cart.js"></script>
 <script src="scripts/main.js"></script>
 <script>
-const API = 'https://api.kalyraa.com/api/v1';
+const API = window.API_HOST ? `${window.API_HOST}/api/v1` : 'https://api.kalyraa.com/api/v1';
 function authHeaders(json = true) {
     const h = { Authorization: `Bearer ${window.KalyraToken?.getAccess()}` };
     if (json) h['Content-Type'] = 'application/json';
@@ -127,7 +127,7 @@ function renderProfile(u) {
     const root = document.getElementById('profile-root');
     const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { month:'long', year:'numeric' }) : '';
     const avatarHtml = u.profile_photo
-        ? `<img src="https://api.kalyraa.com${u.profile_photo}" alt="${u.name}">`
+        ? `<img src="${u.profile_photo.startsWith('http') ? u.profile_photo : (window.API_HOST || 'https://api.kalyraa.com') + u.profile_photo}" alt="${u.name}">`
         : getInitials(u.name, u.email);
 
     root.innerHTML = `
@@ -250,7 +250,7 @@ function wireProfileEvents() {
             const res = await fetch(`${API}/user/profile/photo`, {
                 method: 'POST', headers: authHeaders(false), body: fd
             }).then(r => r.json());
-            const photoUrl = 'https://api.kalyraa.com' + res.data.profile_photo;
+            const photoUrl = (window.API_HOST || 'https://api.kalyraa.com') + res.data.profile_photo;
             const av = document.getElementById('profile-avatar-display');
             if (av) av.innerHTML = `<img src="${photoUrl}" alt="Profile photo">`;
             // Update stored user
