@@ -4914,3 +4914,48 @@ footer {
 @keyframes loaderSpin {
   to { transform: rotate(360deg); }
 }
+
+/* Product Wishlist / Heart Button */
+.product-wishlist-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+  z-index: 5;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.product-wishlist-btn:hover {
+  transform: scale(1.08);
+  background: #ffffff;
+}
+
+.product-wishlist-btn svg {
+  color: #888888;
+  fill: none;
+  transition: all 0.2s ease;
+}
+
+.product-wishlist-btn:hover svg {
+  color: var(--accent, #B59B78);
+}
+
+.product-wishlist-btn.liked svg {
+  color: var(--accent, #B59B78);
+  fill: var(--accent, #B59B78);
+}
+
+/* PDP Wishlist button */
+#pdp-wishlist.liked svg {
+  color: var(--accent, #B59B78);
+  fill: var(--accent, #B59B78);
+}

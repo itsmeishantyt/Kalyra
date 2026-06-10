@@ -11,6 +11,7 @@ const state = {
     products: { page: 1 },
     orders:   { page: 1 },
     users:    { page: 1 },
+    wishlists: { page: 1 },
     activeView: localStorage.getItem('kalyra_admin_view') || 'overview',   // track the currently visible section
 };
 
@@ -112,6 +113,7 @@ const subtitles = {
     products: 'Manage your catalogue',
     orders:   'Track and fulfil orders',
     users:    'Manage your customers',
+    wishlists: 'Monitor customer interests and wishlist items',
 };
 
 function switchView(viewName) {
@@ -126,10 +128,11 @@ function switchView(viewName) {
     state.activeView = viewName;
     localStorage.setItem('kalyra_admin_view', viewName);
 
-    if (viewName === 'overview')  { state.products.page = 1; state.orders.page = 1; state.users.page = 1; fetchOverview(); loadBannerPreview(); }
+    if (viewName === 'overview')  { state.products.page = 1; state.orders.page = 1; state.users.page = 1; state.wishlists.page = 1; fetchOverview(); loadBannerPreview(); }
     if (viewName === 'products')  fetchProducts();
     if (viewName === 'orders')    fetchOrders();
     if (viewName === 'users')     fetchUsers();
+    if (viewName === 'wishlists') fetchWishlists();
     if (viewName === 'settings')  fetchSettings();
 }
 
@@ -1145,8 +1148,56 @@ if (productForm) {
     });
 }
 
+// ── WISHLISTS ─────────────────────────────────────────────────────
+async function fetchWishlists(page = null) {
+    if (page !== null) state.wishlists.page = page;
+    const tbody = document.getElementById('wishlists-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-state">Loading…</td></tr>';
+
+    const search = document.getElementById('wishlist-search')?.value || '';
+
+    const params = new URLSearchParams({ page: state.wishlists.page, limit: 15 });
+    if (search) params.set('search', search);
+
+    const data = await apiGet(`/users/wishlists?${params}`);
+    if (!data?.success) {
+        tbody.innerHTML = '<tr><td colspan="5" class="loading-state">Failed to load wishlists.</td></tr>';
+        return;
+    }
+    if (!data.data.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="loading-state">No wishlists found.</td></tr>';
+        renderPagination('wishlists-pagination', null, 'fetchWishlists');
+        return;
+    }
+
+    const apiOrigin = API.replace('/api/v1/admin', '');
+    tbody.innerHTML = data.data.map(item => `
+        <tr>
+            <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="user-avatar">${(item.user_name || '?')[0].toUpperCase()}</div>
+                    <div style="font-weight:500">${item.user_name || '—'}</div>
+                </div>
+            </td>
+            <td style="font-size:.85rem">${item.user_email || '—'}</td>
+            <td>
+                <div class="product-cell">
+                    <img src="${item.product_image ? `${apiOrigin}${item.product_image}` : 'assets/imgs/placeholder.png'}" class="product-img" alt="${item.product_name}" onerror="this.src='assets/imgs/placeholder.png'">
+                    <div style="font-weight:500">${item.product_name}</div>
+                </div>
+            </td>
+            <td><strong>${INR(item.product_price)}</strong></td>
+            <td style="font-size:.82rem">${fmtDate(item.liked_at)}</td>
+        </tr>
+    `).join('');
+
+    renderPagination('wishlists-pagination', data.meta, 'fetchWishlists');
+}
+
 // Global exposes for inline onclick events
 window.toggleProductActive = toggleProductActive;
 window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
 window.switchView = switchView;
+window.fetchWishlists = fetchWishlists;

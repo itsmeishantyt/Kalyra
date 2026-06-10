@@ -147,7 +147,7 @@ function showLoginStep(name) {
 /* ─── Navbar user state ─────────────────────────────────── */
 function updateNavbarUserState() {
   const user = KalyraToken.getUser();
-  const userIconLinks = document.querySelectorAll('a[href="#login"], a[href="#signup"], .nav-user-icon-link');
+  const userIconLinks = document.querySelectorAll('.nav-user-icon-link');
 
   if (user) {
     userIconLinks.forEach(link => {

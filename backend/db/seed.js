@@ -2,6 +2,26 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const { initDatabase, getDb, txn } = require('./init');
 
+const svgTemplates = {
+  kurta: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#F5F0E8"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#D8CFC4" stroke-width="1"/><rect x="25" y="25" width="550" height="750" fill="none" stroke="#D8CFC4" stroke-width="0.5"/><path d="M220 220 L380 220 L400 320 L350 330 L350 580 L250 580 L250 330 L200 320 Z" fill="none" stroke="#8C7E72" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#8C7E72" stroke-width="2"/><circle cx="300" cy="270" r="10" fill="none" stroke="#B59B78" stroke-width="1.5"/><circle cx="280" cy="285" r="8" fill="none" stroke="#B59B78" stroke-width="1.5"/><circle cx="320" cy="285" r="8" fill="none" stroke="#B59B78" stroke-width="1.5"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#8C7E72" text-anchor="middle" dominant-baseline="middle">Floral Kurta Set</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#B59B78" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  dress: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#E8EDF5"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#CBD5E1" stroke-width="1"/><path d="M240 220 L360 220 L370 290 L420 580 L180 580 L230 290 Z" fill="none" stroke="#1E3A8A" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#1E3A8A" stroke-width="2"/><path d="M280 350 L320 350 M270 410 L330 410 M260 470 L340 470" stroke="#93C5FD" stroke-width="1.5" stroke-dasharray="5,5"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#1E3A8A" text-anchor="middle" dominant-baseline="middle">Indigo Maxi Dress</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#3B82F6" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  top: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#F5F3E8"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#E2E0D2" stroke-width="1"/><path d="M210 230 L390 230 L400 320 L360 380 L240 380 L200 320 Z" fill="none" stroke="#78716C" stroke-width="2" stroke-linejoin="round"/><path d="M280 210 C280 190, 320 190, 320 210 C320 220, 300 220, 300 230" fill="none" stroke="#78716C" stroke-width="2"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#78716C" text-anchor="middle" dominant-baseline="middle">Khadi Crop Top</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#A8A29E" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  trousers: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#EBF5EE"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#D1E5D8" stroke-width="1"/><path d="M240 220 L360 220 L370 580 L310 580 L300 340 L290 580 L230 580 Z" fill="none" stroke="#2D6A4F" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#2D6A4F" stroke-width="2"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#2D6A4F" text-anchor="middle" dominant-baseline="middle">Linen Trousers</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#52B788" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  jacket: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#FAF0F5"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#EAD5E3" stroke-width="1"/><path d="M200 220 L400 220 L420 380 L340 380 L340 450 L260 450 L260 380 L180 380 Z" fill="none" stroke="#9D174D" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#9D174D" stroke-width="2"/><path d="M200 260 L240 260 M360 260 L400 260 M260 400 H340" stroke="#DB2777" stroke-width="1.5"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#9D174D" text-anchor="middle" dominant-baseline="middle">Embroidered Jacket</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#F472B6" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  silk: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#FCF8F2"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#EFE4D5" stroke-width="1"/><path d="M220 220 L380 220 L400 320 L350 330 L350 580 L250 580 L250 330 L200 320 Z" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#B45309" stroke-width="2"/><circle cx="300" cy="300" r="4" fill="#F59E0B"/><circle cx="280" cy="350" r="4" fill="#F59E0B"/><circle cx="320" cy="350" r="4" fill="#F59E0B"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#B45309" text-anchor="middle" dominant-baseline="middle">Chanderi Silk Kurta</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#D97706" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  aline: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#FBF3EE"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#EFE2D9" stroke-width="1"/><path d="M240 220 L360 220 L380 300 L430 580 L170 580 L220 300 Z" fill="none" stroke="#C2410C" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#C2410C" stroke-width="2"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#C2410C" text-anchor="middle" dominant-baseline="middle">Linen A-Line Dress</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#EA580C" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`,
+  
+  palazzo: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800"><rect width="100%" height="100%" fill="#F0F4F8"/><rect x="20" y="20" width="560" height="760" fill="none" stroke="#D9E2EC" stroke-width="1"/><path d="M220 220 L380 220 L400 580 L315 580 L300 300 L285 580 L200 580 Z" fill="none" stroke="#334E68" stroke-width="2" stroke-linejoin="round"/><path d="M280 200 C280 180, 320 180, 320 200 C320 210, 300 210, 300 220" fill="none" stroke="#334E68" stroke-width="2"/><text x="300" y="660" font-family="'Cormorant Garamond', serif" font-size="28" font-style="italic" fill="#334E68" text-anchor="middle" dominant-baseline="middle">Cotton Khadi Palazzo</text><text x="300" y="700" font-family="'DM Sans', sans-serif" font-size="12" letter-spacing="3" fill="#486581" text-anchor="middle" dominant-baseline="middle">KALYRA BOUTIQUE</text></svg>`
+};
+
+const toBase64 = (svg) => 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64');
+
 async function seed() {
   initDatabase();
   const db = getDb();
@@ -249,7 +269,7 @@ async function seed() {
       price: 3899,
       discount_pct: 10,
       stock: 15,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Floral+Kurta+Set',
+      image_url: toBase64(svgTemplates.kurta),
       sizes: JSON.stringify(['S', 'M', 'L', 'XL']),
       colors: JSON.stringify(['Cream', 'Indigo']),
     },
@@ -262,7 +282,7 @@ async function seed() {
       price: 4299,
       discount_pct: 0,
       stock: 20,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Maxi+Dress',
+      image_url: toBase64(svgTemplates.dress),
       sizes: JSON.stringify(['S', 'M', 'L']),
       colors: JSON.stringify(['Indigo']),
     },
@@ -275,7 +295,7 @@ async function seed() {
       price: 1899,
       discount_pct: 5,
       stock: 35,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Khadi+Crop+Top',
+      image_url: toBase64(svgTemplates.top),
       sizes: JSON.stringify(['XS', 'S', 'M', 'L']),
       colors: JSON.stringify(['Beige', 'Teal']),
     },
@@ -288,7 +308,7 @@ async function seed() {
       price: 2499,
       discount_pct: 0,
       stock: 22,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Linen+Trousers',
+      image_url: toBase64(svgTemplates.trousers),
       sizes: JSON.stringify(['S', 'M', 'L', 'XL']),
       colors: JSON.stringify(['Off-White', 'Olive']),
     },
@@ -301,7 +321,7 @@ async function seed() {
       price: 5499,
       discount_pct: 15,
       stock: 8,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Embroidered+Jacket',
+      image_url: toBase64(svgTemplates.jacket),
       sizes: JSON.stringify(['Free Size']),
       colors: JSON.stringify(['Multicolor']),
     },
@@ -314,7 +334,7 @@ async function seed() {
       price: 3499,
       discount_pct: 0,
       stock: 12,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Chanderi+Silk+Kurta',
+      image_url: toBase64(svgTemplates.silk),
       sizes: JSON.stringify(['S', 'M', 'L', 'XL']),
       colors: JSON.stringify(['Peach', 'Mint']),
     },
@@ -327,7 +347,7 @@ async function seed() {
       price: 2999,
       discount_pct: 5,
       stock: 18,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Linen+A-Line+Dress',
+      image_url: toBase64(svgTemplates.aline),
       sizes: JSON.stringify(['XS', 'S', 'M', 'L']),
       colors: JSON.stringify(['Mustard', 'Terracotta']),
     },
@@ -340,7 +360,7 @@ async function seed() {
       price: 1699,
       discount_pct: 0,
       stock: 25,
-      image_url: 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Khadi+Palazzo',
+      image_url: toBase64(svgTemplates.palazzo),
       sizes: JSON.stringify(['S', 'M', 'L', 'XL']),
       colors: JSON.stringify(['Beige', 'Indigo']),
     },

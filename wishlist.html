@@ -136,10 +136,9 @@ async function removeFromWishlist(productId) {
     const card = document.getElementById(`wl-card-${productId}`);
     if (card) { card.style.opacity = '.4'; card.style.pointerEvents = 'none'; }
     try {
-        await fetch(`${API}/wishlist`, {
-            method: 'POST',
-            headers: authHeaders(),
-            body: JSON.stringify({ product_id: productId })
+        await fetch(`${API}/wishlist/${productId}`, {
+            method: 'DELETE',
+            headers: authHeaders()
         });
         card?.remove();
         window.showToast?.('Removed from wishlist', 'info');

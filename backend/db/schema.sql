@@ -298,9 +298,9 @@ CREATE TABLE IF NOT EXISTS settings (
 INSERT OR IGNORE INTO settings (key, value) VALUES
 ('hero_title', 'Artfully Crafted,<br>Designed To Inspire'),
 ('hero_sub', 'Handmade resin art, personalized name plates, and bespoke accessories to elevate your space.'),
-('hero_image_url', '/assets/pearl-hat-portrait.jpg'),
+('hero_image_url', '/uploads/products/diy/pearl-hat-portrait.jpg'),
 ('cta_title', 'Bring Home a Piece<br>Of <em>Handmade Magic</em>'),
-('cta_image_1', '/assets/wedding-resin-plate.jpg'),
-('cta_image_2', '/assets/mirror-butterfly-art.jpg'),
-('cta_image_3', '/assets/floral-gem-art.jpg');
+('cta_image_1', '/uploads/products/diy/wedding-resin-plate.jpg'),
+('cta_image_2', '/uploads/products/diy/mirror-butterfly-art.jpg'),
+('cta_image_3', '/uploads/products/diy/floral-gem-art.jpg');
 

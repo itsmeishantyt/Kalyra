@@ -75,6 +75,11 @@ if (process.env.NODE_ENV !== 'test') {
 // ── Static uploads ──────────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Fallback for missing uploads: redirect to production server so local dev has working images
+app.use('/uploads', (req, res, next) => {
+  res.redirect(`https://api.kalyraa.com/uploads${req.url}`);
+});
+
 // ── Health check ────────────────────────────────────────────
 app.get('/api/v1/health', (req, res) => {
   const db = require('./db/init').getDb();

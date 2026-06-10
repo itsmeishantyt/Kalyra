@@ -26,6 +26,106 @@ const getBadgeClass = (badgeText) => {
 };
 
 // Component Loading System
+// ── Wishlist Manager ──────────────────────────────────────────────
+window.KalyraWishlist = {
+    items: new Set(),
+    
+    async load() {
+        if (!window.KalyraToken?.isLoggedIn()) {
+            this.items.clear();
+            this.updateBadges();
+            return;
+        }
+        try {
+            const API = window.API_HOST ? `${window.API_HOST}/api/v1` : 'https://api.kalyraa.com/api/v1';
+            const res = await fetch(`${API}/wishlist`, {
+                headers: { Authorization: `Bearer ${window.KalyraToken.getAccess()}` }
+            }).then(r => r.json());
+            this.items = new Set((res.data || []).map(item => Number(item.product_id)));
+            this.updateBadges();
+        } catch (err) {
+            console.error('Failed to load wishlist:', err);
+        }
+    },
+
+    has(productId) {
+        return this.items.has(Number(productId));
+    },
+
+    async toggle(productId) {
+        if (!window.KalyraToken?.isLoggedIn()) {
+            window.showToast?.('Please sign in to save items to your wishlist.', 'info');
+            document.querySelector('a[href="#login"]')?.click();
+            return false;
+        }
+        const API = window.API_HOST ? `${window.API_HOST}/api/v1` : 'https://api.kalyraa.com/api/v1';
+        try {
+            const res = await fetch(`${API}/wishlist/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${window.KalyraToken.getAccess()}`
+                }
+            }).then(r => r.json());
+
+            const liked = res.data?.liked;
+            if (liked) {
+                this.items.add(Number(productId));
+                window.showToast?.('Added to wishlist 🤍', 'success');
+            } else {
+                this.items.delete(Number(productId));
+                window.showToast?.('Removed from wishlist', 'info');
+            }
+            this.updateBadges();
+            return liked;
+        } catch (err) {
+            window.showToast?.('Failed to update wishlist', 'error');
+            console.error(err);
+            return false;
+        }
+    },
+
+    updateBadges() {
+        document.querySelectorAll('.product-wishlist-btn').forEach(btn => {
+            const id = Number(btn.dataset.id);
+            const isLiked = this.has(id);
+            btn.classList.toggle('liked', isLiked);
+            const svg = btn.querySelector('svg');
+            if (svg) {
+                svg.setAttribute('fill', isLiked ? 'var(--accent, #B59B78)' : 'none');
+                svg.setAttribute('stroke', isLiked ? 'var(--accent, #B59B78)' : 'currentColor');
+            }
+        });
+        const pdpBtn = document.getElementById('pdp-wishlist');
+        if (pdpBtn) {
+            const id = Number(pdpBtn.dataset.id);
+            const isLiked = this.has(id);
+            pdpBtn.classList.toggle('liked', isLiked);
+            const svg = pdpBtn.querySelector('svg');
+            if (svg) {
+                svg.setAttribute('fill', isLiked ? 'var(--accent, #B59B78)' : 'none');
+                svg.setAttribute('stroke', isLiked ? 'var(--accent, #B59B78)' : 'currentColor');
+            }
+        }
+    }
+};
+
+// Delegated click listeners for wishlist toggle
+document.addEventListener('click', async e => {
+    const btn = e.target.closest('.product-wishlist-btn') || e.target.closest('#pdp-wishlist');
+    if (!btn) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const id = Number(btn.dataset.id);
+    if (id) {
+        await window.KalyraWishlist.toggle(id);
+    }
+});
+
+// Sync wishlist on auth events
+window.addEventListener('kalyra:login', () => window.KalyraWishlist.load());
+window.addEventListener('kalyra:logout', () => window.KalyraWishlist.load());
+
 const components = {
     navbar: 'components/navbar.html',
     footer: 'components/footer.html',
@@ -421,10 +521,15 @@ function initShopFilters() {
             // Format price
             const price = typeof p.price === 'number' ? p.price : 0;
             const badgeHtml = p.badge ? `<div class="product-card-badge ${getBadgeClass(p.badge)}">${p.badge}</div>` : '';
-                        card.innerHTML = `
+            card.innerHTML = `
                 <div class="product-img-wrap">
                     ${badgeHtml}
-                    <img src="${getImageUrl(p.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${p.name}" loading="lazy" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
+                    <button class="product-wishlist-btn" data-id="${p.id}" aria-label="Add to Wishlist">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <img src="${getImageUrl(p.image_url) || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+'}" alt="${p.name}" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+'">
                     <div class="product-add"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
                 </div>
                 <div class="product-brand">${p.category}</div>
@@ -479,6 +584,7 @@ function initShopFilters() {
 
             cardsContainer.appendChild(card);
         });
+        window.KalyraWishlist.updateBadges();
     };
 
     const applyFiltersAndSort = async () => {
@@ -1003,7 +1109,7 @@ async function initProductPage() {
                 id: productId || 'custom-item',
                 name: urlParams.get('name'),
                 price: parseInt(urlParams.get('price')) || 0,
-                img: urlParams.get('img') || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product',
+                img: urlParams.get('img') || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+',
                 category: urlParams.get('cat') || 'Bespoke Creations',
                 description: urlParams.get('desc') || 'A unique handcrafted piece from the Kalyra collection.'
             };
@@ -1050,7 +1156,7 @@ async function renderPDP(container, product) {
         console.error('Failed to load related products', err);
     }
 
-    const prodImg = getImageUrl(product.image_url) || product.img || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product';
+    const prodImg = getImageUrl(product.image_url) || product.img || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+';
 
     // Parse product sizes
     let sizes = [];
@@ -1092,15 +1198,15 @@ async function renderPDP(container, product) {
                         <div class="thumb active" onclick="changePDPImage('${prodImg}', this)">
                             <img src="${prodImg}" alt="${product.name}">
                         </div>
-                        <div class="thumb" onclick="changePDPImage('https://placehold.co/600x800/000000/000000', this)">
-                            <img src="https://placehold.co/600x800/000000/000000" alt="Placeholder">
-                        </div>
-                        <div class="thumb" onclick="changePDPImage('https://placehold.co/600x800/000000/000000', this)">
-                            <img src="https://placehold.co/600x800/000000/000000" alt="Placeholder">
-                        </div>
-                        <div class="thumb" onclick="changePDPImage('https://placehold.co/600x800/000000/000000', this)">
-                            <img src="https://placehold.co/600x800/000000/000000" alt="Placeholder">
-                        </div>
+                         <div class="thumb" onclick="changePDPImage('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+', this)">
+                             <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+" alt="Placeholder">
+                         </div>
+                         <div class="thumb" onclick="changePDPImage('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+', this)">
+                             <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+" alt="Placeholder">
+                         </div>
+                         <div class="thumb" onclick="changePDPImage('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+', this)">
+                             <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+" alt="Placeholder">
+                         </div>
                     </div>
                 </div>
                 
@@ -1126,7 +1232,12 @@ async function renderPDP(container, product) {
                     <div class="pdp-actions">
                         <button class="btn-add-cart" id="pdp-add-cart">Add to Cart</button>
                         <button class="btn-buy-now" id="pdp-buy-now">Buy Now</button>
-                        <button class="btn-share-icon" aria-label="Share">
+                        <button class="btn-share-icon" id="pdp-wishlist" data-id="${product.id}" aria-label="Wishlist">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-share-icon" id="pdp-share-btn" aria-label="Share">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
                         </button>
                     </div>
@@ -1172,7 +1283,7 @@ async function renderPDP(container, product) {
                     ${related.map(r => `
                         <div class="product-card" onclick="window.location.href='product.html?id=${r.id}'">
                             <div class="product-img-wrap">
-                                <img src="${getImageUrl(r.image_url) || 'https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'}" alt="${r.name}" onerror="this.src='https://placehold.co/600x800/F5F0E8/8C7E72?text=Product'">
+                                <img src="${getImageUrl(r.image_url) || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+'}" alt="${r.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiB3aWR0aD0iNjAwIiBoZWlnaHQ9IjgwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI0Y1RjBFOCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iJ0Nvcm1vcmFudCBHYXJhbW9uZCcsIHNlcmlmIiBmb250LXNpemU9IjM2IiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiM4QzdFNzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkthbHlyYTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU2JSIgZm9udC1mYW1pbHk9IidETSBTYW5zJywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgbGV0dGVyLXNwYWNpbmc9IjIiIGZpbGw9IiNCNTlCNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkBST0RVQ1Q8L3RleHQ+PC9zdmc+'">
                             </div>
                             <div class="product-brand">${r.category ? r.category.charAt(0).toUpperCase() + r.category.slice(1) : ''}</div>
                             <h3 class="product-name">${r.name}</h3>
@@ -1299,63 +1410,72 @@ async function renderPDP(container, product) {
     });
 
     // Share Button Event Listener
-    const shareBtn = container.querySelector('.btn-share-icon');
+    const shareBtn = container.querySelector('#pdp-share-btn');
     shareBtn?.addEventListener('click', async () => {
         try {
-            await navigator.clipboard.writeText(window.location.href);
-            
-            // Visual feedback on the button itself
-            shareBtn.classList.add('copied');
-            const originalHTML = shareBtn.innerHTML;
-            shareBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-            
-            // Create a floating premium toast
-            let toast = document.getElementById('kalyra-pdp-toast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'kalyra-pdp-toast';
-                toast.style.position = 'fixed';
-                toast.style.bottom = '40px';
-                toast.style.left = '50%';
-                toast.style.transform = 'translateX(-50%) translateY(20px)';
-                toast.style.background = 'rgba(30, 26, 23, 0.95)';
-                toast.style.color = '#fff';
-                toast.style.padding = '14px 28px';
-                toast.style.borderRadius = '100px';
-                toast.style.fontFamily = "var(--sans), sans-serif";
-                toast.style.fontSize = '13px';
-                toast.style.letterSpacing = '0.05em';
-                toast.style.boxShadow = '0 10px 40px rgba(0,0,0,0.15)';
-                toast.style.opacity = '0';
-                toast.style.transition = 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)';
-                toast.style.zIndex = '100000';
-                toast.style.display = 'flex';
-                toast.style.alignItems = 'center';
-                toast.style.gap = '10px';
-                document.body.appendChild(toast);
+            if (navigator.share) {
+                await navigator.share({
+                    title: product ? product.name : document.title,
+                    text: `Check out this beautiful item on Kalyra!`,
+                    url: window.location.href
+                });
+            } else {
+                await navigator.clipboard.writeText(window.location.href);
+                
+                // Visual feedback on the button itself
+                shareBtn.classList.add('copied');
+                const originalHTML = shareBtn.innerHTML;
+                shareBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+                
+                // Create a floating premium toast
+                let toast = document.getElementById('kalyra-pdp-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'kalyra-pdp-toast';
+                    toast.style.position = 'fixed';
+                    toast.style.bottom = '40px';
+                    toast.style.left = '50%';
+                    toast.style.transform = 'translateX(-50%) translateY(20px)';
+                    toast.style.background = 'rgba(30, 26, 23, 0.95)';
+                    toast.style.color = '#fff';
+                    toast.style.padding = '14px 28px';
+                    toast.style.borderRadius = '100px';
+                    toast.style.fontFamily = "var(--sans), sans-serif";
+                    toast.style.fontSize = '13px';
+                    toast.style.letterSpacing = '0.05em';
+                    toast.style.boxShadow = '0 10px 40px rgba(0,0,0,0.15)';
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)';
+                    toast.style.zIndex = '100000';
+                    toast.style.display = 'flex';
+                    toast.style.alignItems = 'center';
+                    toast.style.gap = '10px';
+                    document.body.appendChild(toast);
+                }
+                
+                toast.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B89B71" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Link copied to clipboard!</span>
+                `;
+                
+                // Show toast
+                requestAnimationFrame(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateX(-50%) translateY(0)';
+                });
+                
+                // Hide toast and reset button state after 2.5s
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(-50%) translateY(20px)';
+                    shareBtn.classList.remove('copied');
+                    shareBtn.innerHTML = originalHTML;
+                }, 2500);
             }
-            
-            toast.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B89B71" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                <span>Link copied to clipboard!</span>
-            `;
-            
-            // Show toast
-            requestAnimationFrame(() => {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateX(-50%) translateY(0)';
-            });
-            
-            // Hide toast and reset button state after 2.5s
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(-50%) translateY(20px)';
-                shareBtn.classList.remove('copied');
-                shareBtn.innerHTML = originalHTML;
-            }, 2500);
-            
         } catch (err) {
-            console.error('Failed to copy link:', err);
+            if (err.name !== 'AbortError') {
+                console.error('Failed to share:', err);
+            }
         }
     });
     
@@ -1400,6 +1520,7 @@ async function renderPDP(container, product) {
 
     // Setup Gallery Arrows
     setupPDPInteractions();
+    window.KalyraWishlist.updateBadges();
 }
 
 function getReviews(productId) {
@@ -1647,37 +1768,55 @@ function setupPDPInteractions() {
 
 function initGoogleAuth() {
     const googleBtnContainer = document.getElementById('btn-google-login');
-    if (typeof google !== 'undefined') {
-        google.accounts.id.initialize({
-            client_id: "349751177817-oo4elddbeu78b35j34bo3uj88n4f8did.apps.googleusercontent.com",
-            callback: window.handleGoogleResponse,
-            auto_select: false,
-            cancel_on_tap_outside: true
-        });
-
-        if (googleBtnContainer) {
-            googleBtnContainer.innerHTML = '';
-            google.accounts.id.renderButton(googleBtnContainer, {
-                theme: 'outline',
-                size: 'large',
-                width: '320',
-                text: 'continue_with',
-                shape: 'pill',
-                logo_alignment: 'left'
+    
+    const renderGoogleBtn = () => {
+        if (typeof google !== 'undefined') {
+            google.accounts.id.initialize({
+                client_id: "349751177817-oo4elddbeu78b35j34bo3uj88n4f8did.apps.googleusercontent.com",
+                callback: window.handleGoogleResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true
             });
-            // Also attempt to invoke One Tap non-intrusively
-            google.accounts.id.prompt();
+
+            if (googleBtnContainer) {
+                googleBtnContainer.innerHTML = '';
+                google.accounts.id.renderButton(googleBtnContainer, {
+                    theme: 'outline',
+                    size: 'large',
+                    width: '320',
+                    text: 'continue_with',
+                    shape: 'pill',
+                    logo_alignment: 'left'
+                });
+                // Also attempt to invoke One Tap non-intrusively
+                google.accounts.id.prompt();
+            }
+            return true;
         }
-    } else {
-        console.warn('Google Identity Services script not loaded');
-        if (googleBtnContainer) {
-            googleBtnContainer.innerHTML = `
-                <button type="button" class="login-submit" style="background:#dadce0; color:#666; cursor:not-allowed;" disabled>
-                    Google Login Unavailable
-                </button>
-            `;
+        return false;
+    };
+
+    if (renderGoogleBtn()) return;
+
+    console.warn('Google Identity Services script not loaded yet, polling...');
+    let checks = 0;
+    const interval = setInterval(() => {
+        checks++;
+        if (renderGoogleBtn()) {
+            clearInterval(interval);
+            console.log('Google Identity Services script loaded successfully.');
+        } else if (checks >= 25) {
+            clearInterval(interval);
+            console.warn('Google Identity Services script failed to load within 5s.');
+            if (googleBtnContainer) {
+                googleBtnContainer.innerHTML = `
+                    <button type="button" class="login-submit" style="background:#dadce0; color:#666; cursor:not-allowed;" disabled>
+                        Google Login Unavailable
+                    </button>
+                `;
+            }
         }
-    }
+    }, 200);
 }
 
 // ── APPAREL SECTION LOGIC ──
@@ -1690,6 +1829,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded, starting boot sequence...');
     loadAllComponents().then(() => {
         console.log('Boot sequence complete.');
+        window.KalyraWishlist.load();
         initGoogleAuth();
         applyCustomBanner();   // swap hero image if admin has set a custom one
 

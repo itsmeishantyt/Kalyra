@@ -44,6 +44,50 @@ router.get('/', requireAdmin(), [
 });
 
 // ─────────────────────────────────────────────────────────────
+//  GET /api/v1/admin/users/wishlists
+// ─────────────────────────────────────────────────────────────
+router.get('/wishlists', requireAdmin(), [
+  query('page').optional().isInt({ min: 1 }).toInt(),
+  query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+  query('search').optional().trim(),
+], validate, (req, res, next) => {
+  try {
+    const db = getDb();
+    const { page = 1, limit = 20, search } = req.query;
+    const offset = (page - 1) * limit;
+
+    let where = ['1=1'];
+    const params = [];
+    if (search) {
+      where.push('(u.name LIKE ? OR u.email LIKE ? OR p.name LIKE ?)');
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    const whereStr = where.join(' AND ');
+    const total = db.prepare(`
+      SELECT COUNT(*) as n 
+      FROM liked_products lp
+      JOIN users u ON u.id = lp.user_id
+      JOIN products p ON p.id = lp.product_id
+      WHERE ${whereStr}
+    `).get(...params).n;
+
+    const wishlists = db.prepare(`
+      SELECT lp.id, lp.liked_at,
+             u.id as user_id, u.name as user_name, u.email as user_email,
+             p.id as product_id, p.name as product_name, p.price as product_price, p.image_url as product_image
+      FROM liked_products lp
+      JOIN users u ON u.id = lp.user_id
+      JOIN products p ON p.id = lp.product_id
+      WHERE ${whereStr}
+      ORDER BY lp.liked_at DESC LIMIT ? OFFSET ?
+    `).all(...params, limit, offset);
+
+    return R.paginate(res, wishlists, { page, limit, total });
+  } catch (err) { next(err); }
+});
+
+// ─────────────────────────────────────────────────────────────
 //  GET /api/v1/admin/users/:id
 // ─────────────────────────────────────────────────────────────
 router.get('/:id', requireAdmin(), (req, res, next) => {
