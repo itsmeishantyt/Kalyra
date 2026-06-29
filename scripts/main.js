@@ -37,10 +37,7 @@ window.KalyraWishlist = {
             return;
         }
         try {
-            const API = window.API_HOST ? `${window.API_HOST}/api/v1` : 'https://api.kalyraa.com/api/v1';
-            const res = await fetch(`${API}/wishlist`, {
-                headers: { Authorization: `Bearer ${window.KalyraToken.getAccess()}` }
-            }).then(r => r.json());
+            const res = await window.KalyraAPI.getWishlist();
             this.items = new Set((res.data || []).map(item => Number(item.product_id)));
             this.updateBadges();
         } catch (err) {
@@ -58,16 +55,8 @@ window.KalyraWishlist = {
             document.querySelector('a[href="#login"]')?.click();
             return false;
         }
-        const API = window.API_HOST ? `${window.API_HOST}/api/v1` : 'https://api.kalyraa.com/api/v1';
         try {
-            const res = await fetch(`${API}/wishlist/${productId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${window.KalyraToken.getAccess()}`
-                }
-            }).then(r => r.json());
-
+            const res = await window.KalyraAPI.toggleWishlist(productId);
             const liked = res.data?.liked;
             if (liked) {
                 this.items.add(Number(productId));

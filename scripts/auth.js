@@ -458,7 +458,7 @@ function wireModals() {
       showToast(`Welcome back, ${user.name || user.email}! 🎉`, 'success');
       closeAllModals();
       updateNavbarUserState();
-      if (typeof KalyraCart !== 'undefined') KalyraCart.syncFromBackend();
+      if (typeof KalyraCart !== 'undefined') KalyraCart.mergeGuestCartAndSync();
     } catch (err) {
       showToast(err.message || 'Login failed. Check your credentials.', 'error');
     } finally { setLoading(btn, false); }
@@ -660,7 +660,7 @@ function wireModals() {
       closeAllModals();
       SignupFlow.reset();
       updateNavbarUserState();
-      if (typeof KalyraCart !== 'undefined') KalyraCart.syncFromBackend();
+      if (typeof KalyraCart !== 'undefined') KalyraCart.mergeGuestCartAndSync();
     } catch (err) {
       // Show detailed error in-modal
       if (apiErr) {
@@ -787,6 +787,15 @@ document.addEventListener('click', e => {
 
 /* ─── Auto-init ─────────────────────────────────────────── */
 function initAuth() {
+  // Dynamically inject Google Identity Services client script if not already present
+  if (!document.querySelector('script[src*="accounts.google.com/gsi/client"]')) {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   const check = setInterval(() => {
     if (document.getElementById('login-modal') && document.getElementById('signup-modal')) {
       clearInterval(check);

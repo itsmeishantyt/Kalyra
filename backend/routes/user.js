@@ -104,6 +104,42 @@ router.post('/profile/photo', requireAuth, (req, res, next) => {
 });
 
 // ─────────────────────────────────────────────────────────────
+//  PUT /api/v1/user/password  (authenticated change password)
+// ─────────────────────────────────────────────────────────────
+router.put('/password', requireAuth, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/).withMessage('Password must contain an uppercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain a number'),
+], validate, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const db = getDb();
+
+    const user = db.prepare('SELECT id, password_hash FROM users WHERE id = ?').get(req.user.id);
+    if (!user) return R.notFound(res, 'User not found');
+
+    const match = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!match) return R.badRequest(res, 'Current password is incorrect');
+
+    // Reject no-op changes
+    const same = await bcrypt.compare(newPassword, user.password_hash);
+    if (same) return R.badRequest(res, 'New password must be different from your current password');
+
+    const hash = await bcrypt.hash(newPassword, 12);
+    db.prepare('UPDATE users SET password_hash = ?, updated_at = datetime(\'now\') WHERE id = ?')
+      .run(hash, req.user.id);
+
+    // Invalidate all other sessions for security; the current session stays usable
+    // until the client logs out (the frontend signs the user out after a successful change).
+    db.prepare('UPDATE sessions SET is_valid = 0 WHERE user_id = ?').run(req.user.id);
+
+    return R.success(res, null, 'Password updated successfully');
+  } catch (err) { next(err); }
+});
+
+// ─────────────────────────────────────────────────────────────
 //  GET /api/v1/user/sessions
 // ─────────────────────────────────────────────────────────────
 router.get('/sessions', requireAuth, (req, res, next) => {

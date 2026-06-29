@@ -125,10 +125,16 @@ const KalyraAPI = {
   async forgotPassword(email) {
     return apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
   },
+  async resetPassword(token, password) {
+    return apiFetch('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, password }) });
+  },
 
   // User
   async getProfile() {
     return apiFetch('/user/profile');
+  },
+  async changePassword(currentPassword, newPassword) {
+    return apiFetch('/user/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) });
   },
 
   // Products
@@ -158,11 +164,14 @@ const KalyraAPI = {
   },
 
   // Wishlist
-  async toggleWishlist(product_id) {
-    return apiFetch('/wishlist', { method: 'POST', body: JSON.stringify({ product_id }) });
+  async toggleWishlist(productId) {
+    return apiFetch(`/wishlist/${productId}`, { method: 'POST' });
   },
   async getWishlist() {
     return apiFetch('/wishlist');
+  },
+  async removeFromWishlist(productId) {
+    return apiFetch(`/wishlist/${productId}`, { method: 'DELETE' });
   },
 
   // Orders

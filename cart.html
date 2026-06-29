@@ -672,7 +672,7 @@
                     <li><a href="privacy.html">Privacy policy</a></li>
                     <li><a href="terms.html">Terms &amp; conditions</a></li>
                     <li><a href="shipping.html">Shipping & Delivery</a></li>
-                    <li><a href="#">Return policy</a></li>
+                    <li><a href="return-policy.html">Return policy</a></li>
                 </ul>
             </div>
             <div>
@@ -1045,9 +1045,7 @@
                 try {
                     const res = await KalyraAPI.getCart();
                     const backendItems = res.data?.items || res.data || [];
-                    if (backendItems.length > 0) {
-                        KalyraCart.saveLocal(backendItems);
-                    }
+                    KalyraCart.saveLocal(backendItems);
                     cartItems = KalyraCart.getLocal();
                 } catch {
                     cartItems = KalyraCart.getLocal();

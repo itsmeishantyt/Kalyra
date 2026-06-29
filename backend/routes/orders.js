@@ -202,10 +202,16 @@ router.post('/', requireAuth, [
     const order   = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
     const items   = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId);
 
-    // Send order confirmation email (non-blocking)
-    const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
-    sendOrderConfirmation(user, order, items)
-      .catch(err => console.error('[mailer] Order confirmation email failed:', err.message));
+    // Send order confirmation email (non-blocking) ONLY for COD orders, which are
+    // already 'confirmed' here. Online orders are still 'pending' with no
+    // razorpay_order_id at this point, so emailing now would mislabel them as
+    // "Cash on Delivery". Their confirmation email is sent after payment is
+    // verified (payments.js webhook), where the real payment method is known.
+    if (payment_method === 'cod') {
+      const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
+      sendOrderConfirmation(user, order, items)
+        .catch(err => console.error('[mailer] Order confirmation email failed:', err.message));
+    }
 
     return R.created(res, { order, orderRef }, 'Order placed successfully');
   } catch (err) { next(err); }

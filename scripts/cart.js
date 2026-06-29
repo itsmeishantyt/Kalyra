@@ -81,6 +81,31 @@ const KalyraCart = {
     } catch { /* silently fail */ }
   },
 
+  /* ── Merge guest cart to backend and sync ── */
+  async mergeGuestCartAndSync() {
+    if (!KalyraToken.isLoggedIn()) return;
+    const user = KalyraToken.getUser();
+    if (user && user.isAdmin) return;
+
+    try {
+      const localItems = this.getLocal();
+      if (localItems.length > 0) {
+        for (const item of localItems) {
+          try {
+            await KalyraAPI.addToCart(item.product_id, item.quantity, item.size, item.color);
+          } catch (e) {
+            console.warn('Failed to merge guest item to backend:', e);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to merge guest cart:', err);
+    }
+
+    // Always sync final backend state
+    await this.syncFromBackend();
+  },
+
   /* ── Get item count ── */
   getCount() {
     return this.getLocal().reduce((sum, i) => sum + (i.quantity || 1), 0);
@@ -102,7 +127,7 @@ const KalyraCart = {
 };
 
 /* Sync on login, clear on logout */
-window.addEventListener('kalyra:login',  () => KalyraCart.syncFromBackend());
+window.addEventListener('kalyra:login',  () => KalyraCart.mergeGuestCartAndSync());
 window.addEventListener('kalyra:logout', () => KalyraCart.saveLocal([]));
 
 /* Init when DOM ready */

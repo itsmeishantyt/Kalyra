@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy | Kalyra</title>
+  <title>Return Policy | Kalyra</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles/main.css">
   <link rel="icon" type="image/png" href="assets/imgs/favicon.png">
   <style>
-    /* Legal Page Specific Styles (using the same system layout as shipping) */
+    /* Return Policy Page Specific Styles */
     .shipping-page {
       padding-top: 0;
       min-height: 100vh;
@@ -28,7 +28,6 @@
       isolation: isolate;
     }
 
-    /* Golden Leaf SVG Curve */
     .golden-leaf {
       position: absolute;
       top: 0;
@@ -55,38 +54,13 @@
       height: 100%;
     }
 
-    .leaf-decoration {
+    .leaf-curve-main svg {
       position: absolute;
-      opacity: 0.6;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
-
-    .leaf-1 {
-      top: 5%;
-      left: -2%;
-      width: 180px;
-      transform: rotate(-15deg);
-      animation: gentleFloat 8s ease-in-out infinite;
-    }
-
-    .leaf-2 {
-      bottom: 8%;
-      right: -1%;
-      width: 140px;
-      transform: rotate(25deg);
-      animation: gentleFloat 10s ease-in-out infinite reverse;
-    }
-
-    @keyframes gentleFloat {
-      0%, 100% {
-        transform: translateY(0px) rotate(var(--rotation, 0deg));
-      }
-      50% {
-        transform: translateY(-15px) rotate(var(--rotation, 0deg));
-      }
-    }
-
-    .leaf-1 { --rotation: -15deg; }
-    .leaf-2 { --rotation: 25deg; }
 
     .shipping-hero-title,
     .shipping-hero-sub {
@@ -140,11 +114,6 @@
       color: var(--deep);
       border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
-      margin-top: 36px;
-    }
-
-    .shipping-section-title:first-of-type {
-      margin-top: 0;
     }
 
     .shipping-text {
@@ -206,6 +175,39 @@
       line-height: 1.6;
     }
 
+    .return-steps {
+      counter-reset: step;
+      margin-top: 8px;
+    }
+
+    .return-step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .return-step-num {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .return-step p {
+      margin: 4px 0 0;
+      font-size: 14.5px;
+      color: var(--mid);
+      line-height: 1.6;
+    }
+
     @media (max-width: 768px) {
       .shipping-container {
         padding: 40px 16px 80px;
@@ -241,75 +243,55 @@
           </defs>
         </svg>
       </div>
-      <h1 class="shipping-hero-title">Privacy <em>Policy</em></h1>
-      <p class="shipping-hero-sub">How we handle, secure, and protect your personal information at Kalyra.</p>
+      <h1 class="shipping-hero-title">Return <em>Policy</em></h1>
+      <p class="shipping-hero-sub">Every Kalyra piece is handcrafted with care. Here's how returns and exchanges work.</p>
     </div>
 
     <div class="shipping-container">
       <div class="shipping-card reveal">
-        <h2 class="shipping-section-title">Introduction</h2>
+        <h2 class="shipping-section-title">Returns & Exchanges</h2>
         <div class="shipping-text">
-          <p>Welcome to Kalyra. We respect your privacy and are committed to protecting the personal data you share with us. This Privacy Policy outlines how we collect, use, disclose, and safeguard your information when you visit our website and use our e-commerce services.</p>
-          <p>By using our website, signing up for an account, or purchasing products, you agree to the practices described in this policy.</p>
-        </div>
+          <p>Because each of our products is made by hand, slight variations in texture, finish, and colour are natural and part of their charm — they are not considered defects. For this reason, we do not offer returns for general change-of-mind purchases.</p>
 
-        <h2 class="shipping-section-title">Information We Collect</h2>
-        <div class="shipping-text">
-          <p>To provide a seamless shopping experience, we collect information that helps us identify you and fulfill your requests:</p>
-          
+          <div class="shipping-highlight">
+            <h4>Returns are accepted within 3 days of delivery</h4>
+            <p>If your item arrives damaged or defective, you may request a return or replacement within 3 days of delivery. The product must be unused and in its original condition and packaging.</p>
+          </div>
+
+          <p>To help us process your request quickly, please keep the original packaging and share clear photos of the damaged item when you contact us.</p>
+
           <div class="shipping-grid">
             <div class="shipping-grid-item">
-              <h4>Account Data</h4>
-              <p>When you register, we collect your name, email address, password hashes, and phone number to manage your account secure credentials.</p>
+              <h4>Eligible for Return</h4>
+              <p>Items that arrive damaged, defective, or incorrect. Reported within 3 days of delivery, unused and in original condition.</p>
             </div>
             <div class="shipping-grid-item">
-              <h4>Transaction Data</h4>
-              <p>We keep track of your shopping cart contents, purchase transactions, order totals, and payment status histories.</p>
-            </div>
-          </div>
-          
-          <div class="shipping-grid" style="margin-top: 16px;">
-            <div class="shipping-grid-item">
-              <h4>Delivery Details</h4>
-              <p>We collect shipping addresses and recipient details to safely coordinate shipping and courier services.</p>
-            </div>
-            <div class="shipping-grid-item">
-              <h4>Wishlist Preferences</h4>
-              <p>We record liked products and wishlist items to help personalize recommendations and sync choices across devices.</p>
+              <h4>Not Eligible</h4>
+              <p>Change-of-mind returns, used items, items without original packaging, or requests raised after the 3-day window.</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <h2 class="shipping-section-title">How We Use Your Data</h2>
-        <div class="shipping-text">
-          <p>We use the gathered information to operate and improve our store operations:</p>
-          <ul>
-            <li>To process, pack, track, and complete your orders.</li>
-            <li>To manage your account, wishlist, and profiles.</li>
-            <li>To communicate transaction confirmations, order updates, and customer support help.</li>
-            <li>To detect, prevent, and mitigate fraud or system security issues.</li>
-          </ul>
-        </div>
-
-        <h2 class="shipping-section-title">Sharing and Disclosure</h2>
-        <div class="shipping-text">
-          <p>We do not sell, rent, or trade your personal information. We only share information with trusted third parties to facilitate transactions and deliveries:</p>
-          
-          <div class="shipping-highlight">
-            <h4>Service Integration Partners</h4>
-            <p><strong>Payment Gateways:</strong> Payment details are processed directly and securely by Razorpay. We do not store credit card credentials on our servers.<br>
-            <strong>Shipping Providers:</strong> Delivery details are shared with our logistics and courier partners to ship packages to your address.</p>
+      <div class="shipping-card reveal" style="margin-top: 24px;">
+        <h2 class="shipping-section-title">How to Request a Return</h2>
+        <div class="return-steps">
+          <div class="return-step">
+            <div class="return-step-num">1</div>
+            <p>Contact our support team within 3 days of delivery with your order reference and photos of the item.</p>
+          </div>
+          <div class="return-step">
+            <div class="return-step-num">2</div>
+            <p>Our team will review your request and confirm whether the item qualifies for a return or replacement.</p>
+          </div>
+          <div class="return-step">
+            <div class="return-step-num">3</div>
+            <p>Once approved, we'll guide you through returning the item and arrange a replacement or refund.</p>
           </div>
         </div>
-
-        <h2 class="shipping-section-title">Data Security</h2>
-        <div class="shipping-text">
-          <p>We implement robust technical measures to protect your data. All communications are encrypted using secure HTTPS protocols. Passwords are securely hashed using industry-standard bcrypt algorithms prior to storage to guarantee confidentiality.</p>
-        </div>
-
-        <h2 class="shipping-section-title">Your Rights</h2>
-        <div class="shipping-text">
-          <p>You can access, update, or edit your account information and preferences at any time by logging in and visiting your Profile page. If you have any questions or would like to request account removal, please reach out to our team at <strong>support@kalyraa.com</strong>.</p>
+        <div class="shipping-highlight" style="margin-bottom: 0;">
+          <h4>Need help?</h4>
+          <p>Reach our support team at <a href="mailto:kalyra.studio9@gmail.com" style="color: var(--accent);">kalyra.studio9@gmail.com</a> or through our <a href="contact.html" style="color: var(--accent);">Contact page</a>.</p>
         </div>
       </div>
     </div>

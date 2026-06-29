@@ -76,17 +76,11 @@
 <script src="scripts/cart.js"></script>
 <script src="scripts/main.js"></script>
 <script>
-const API = window.API_HOST ? `${window.API_HOST}/api/v1` : 'https://api.kalyraa.com/api/v1';
-
-function authHeaders() {
-    return { 'Content-Type': 'application/json', Authorization: `Bearer ${window.KalyraToken?.getAccess()}` };
-}
-
 async function loadWishlist() {
     const root = document.getElementById('wishlist-root');
     root.innerHTML = '<div class="wl-loading">Loading your wishlist…</div>';
     try {
-        const res = await fetch(`${API}/wishlist`, { headers: authHeaders() }).then(r => r.json());
+        const res = await window.KalyraAPI.getWishlist();
         const items = res.data || [];
         renderWishlist(items);
     } catch (err) {
@@ -136,15 +130,12 @@ async function removeFromWishlist(productId) {
     const card = document.getElementById(`wl-card-${productId}`);
     if (card) { card.style.opacity = '.4'; card.style.pointerEvents = 'none'; }
     try {
-        await fetch(`${API}/wishlist/${productId}`, {
-            method: 'DELETE',
-            headers: authHeaders()
-        });
+        await window.KalyraAPI.removeFromWishlist(productId);
         card?.remove();
         window.showToast?.('Removed from wishlist', 'info');
         // Reload to update count
         loadWishlist();
-    } catch {
+    } catch (err) {
         if (card) { card.style.opacity = '1'; card.style.pointerEvents = ''; }
         window.showToast?.('Could not remove item', 'error');
     }

@@ -301,47 +301,36 @@ function wireProfileEvents() {
         }
     });
 
-    // Change password (calls forgot-password flow locally — direct SQLite has no change-pw endpoint exposed on user route directly)
-    // We'll call reset-password after getting a token from forgot-password in local mode
+    // Change password — verifies the current password server-side via the
+    // authenticated PUT /user/password endpoint, then signs out for security.
     document.getElementById('btn-change-password')?.addEventListener('click', async () => {
         const btn = document.getElementById('btn-change-password');
         const succ = document.getElementById('pw-success');
         const errEl = document.getElementById('pw-error');
         succ.style.display = 'none'; errEl.style.display = 'none';
 
+        const currentPw = document.getElementById('pf-pw-current')?.value;
         const newPw  = document.getElementById('pf-pw-new')?.value;
         const confPw = document.getElementById('pf-pw-confirm')?.value;
 
-        if (!newPw) { errEl.textContent = 'Enter a new password.'; errEl.style.display = 'block'; return; }
-        if (newPw.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
-        if (!/[A-Z]/.test(newPw)) { errEl.textContent = 'Password must have at least one uppercase letter.'; errEl.style.display = 'block'; return; }
-        if (!/[0-9]/.test(newPw)) { errEl.textContent = 'Password must have at least one number.'; errEl.style.display = 'block'; return; }
-        if (newPw !== confPw) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+        const fail = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+        if (!currentPw) return fail('Enter your current password.');
+        if (!newPw) return fail('Enter a new password.');
+        if (newPw.length < 8) return fail('Password must be at least 8 characters.');
+        if (!/[A-Z]/.test(newPw)) return fail('Password must have at least one uppercase letter.');
+        if (!/[0-9]/.test(newPw)) return fail('Password must have at least one number.');
+        if (newPw !== confPw) return fail('Passwords do not match.');
 
         btn.disabled = true; btn.textContent = 'Updating…';
         try {
-            // Step 1: request reset token (local dev mode returns token in response)
-            const fpRes = await fetch(`${API}/auth/forgot-password`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: currentUser.email })
-            }).then(r => r.json());
-
-            const token = fpRes.data?.token || fpRes.data?.resetToken;
-            if (!token) throw new Error('Password reset not available in local mode without email.');
-
-            // Step 2: reset with token
-            const rpRes = await fetch(`${API}/auth/reset-password`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, password: newPw })
-            }).then(r => r.json());
-
-            if (!rpRes.success) throw new Error(rpRes.message);
+            await window.KalyraAPI.changePassword(currentPw, newPw);
             succ.style.display = 'block';
             ['pf-pw-current','pf-pw-new','pf-pw-confirm'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            // Password change invalidates sessions — sign out and send to login.
             setTimeout(() => window.KalyraAuth?.logout(), 2000);
         } catch (e) {
-            errEl.textContent = e.message || 'Could not change password.';
-            errEl.style.display = 'block';
+            fail(e.message || 'Could not change password.');
         } finally {
             btn.disabled = false; btn.textContent = 'Update Password';
         }
